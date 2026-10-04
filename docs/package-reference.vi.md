@@ -1,6 +1,6 @@
 # BLEND Kit — Tham khảo package và lịch sử kiểm chứng
 
-Tài liệu dành cho người bảo trì. Cách cài và dùng nằm trong [README](../README.vi.md). Các candidate dưới đây là những mốc kiểm chứng riêng; tên `v6` không phải version plugin đã phát hành trên marketplace.
+Tài liệu dành cho người bảo trì. Cách cài và dùng nằm trong [README](../README.md). Các candidate dưới đây là những mốc kiểm chứng riêng; tên `v6` không phải version plugin đã phát hành trên marketplace.
 
 ## Build từ source
 
