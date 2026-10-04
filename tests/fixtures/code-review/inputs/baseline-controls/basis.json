@@ -1,0 +1,9 @@
+{
+  "kind": "synthetic-missing-base-control-not-actual-git",
+  "base": null,
+  "head": "supplied-current-bytes-only",
+  "included_commits": null,
+  "intended_plan": "../implementation/approved-plan.md",
+  "current_snapshot": "../implementation/current",
+  "permissions": "read supplied source only"
+}

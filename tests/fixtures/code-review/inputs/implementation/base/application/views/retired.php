@@ -1,0 +1,1 @@
+<p>Retired view</p>

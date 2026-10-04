@@ -1,0 +1,6 @@
+SYNTHETIC SOURCE SCHEMA — not target database observation.
+notices: id INT primary key; school_id INT not null; year INT not null;
+owner_id INT not null; group_id INT not null; body TEXT not null;
+state VARCHAR(20) not null with existing draft/published states.
+There is no stored expiry date in this source snapshot.
+One row = one announcement scoped by school/year/owner; group references a recipient group.

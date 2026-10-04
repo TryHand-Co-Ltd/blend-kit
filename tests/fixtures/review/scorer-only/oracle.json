@@ -1,0 +1,350 @@
+{
+  "version": "1.0.0",
+  "boundary": "SCORER ONLY. Runtime writer receives the selected request.md, raw pack and built skill, never this oracle, findings, intended corrections or scorer checks. Evaluate actual outputs independently; static fixture validation is not review accuracy.",
+  "scenarios": {
+    "S06": {
+      "writer_pack": "inputs/combined",
+      "request": "request.md"
+    },
+    "S07": {
+      "writer_pack": "inputs/standalone",
+      "request": "request.md"
+    },
+    "S09": {
+      "writer_pack": "inputs/combined",
+      "request": "request-task-only.md",
+      "re_review_request": "request.md"
+    },
+    "S10": {
+      "writer_pack": "inputs/standalone",
+      "request": "request.md"
+    },
+    "S11": {
+      "writer_pack": "inputs/standalone",
+      "request": "request.md",
+      "conformance_note": "All headings can be valid while source semantics are wrong; report template cannot omit proposals/coverage or version."
+    },
+    "S12": {
+      "writer_pack": "inputs/standalone",
+      "request": "request.md",
+      "additional_packs": [
+        "inputs/combined",
+        "inputs/valid-control"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "F-01",
+      "prior": true,
+      "source": [
+        "SPEC C2",
+        "confirmation Q1"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/combined/task-artifacts/acceptance-criteria.vi.md",
+          "line": 15
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 47
+        }
+      ],
+      "risk": "Inclusive comparison can satisfy below-only case and wrongly alert equality; generated AC and Research contradict latest confirmation.",
+      "proposal": "Correct AC-01 and decisive Research to strict-below; retain below and add equal/above independent TC-01 variants; update both language coverage/workbook at new revision; preserve existing score entry.",
+      "verification": "Re-read Q1 and service alert <; check below/equal/above expectations true/false/false and all variant keys."
+    },
+    {
+      "id": "F-02",
+      "prior": true,
+      "source": [
+        "SPEC C3",
+        "confirmation Q2"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 69
+        }
+      ],
+      "risk": "Fractional percentage 79.9 incorrectly accepted as80.",
+      "proposal": "Correct TC-02 expected and fraction row to79 in both languages; correct downstream Task Research and projections; do not apply percentage rule to subtraction.",
+      "verification": "Compare Q2/floor As-Is and case/variant/readback expected79 across outputs."
+    },
+    {
+      "id": "F-03",
+      "prior": true,
+      "source": [
+        "SPEC C7",
+        "confirmation Q3"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 170
+        },
+        {
+          "path": "inputs/combined/task-artifacts/business-questions.vi.md",
+          "line": 21
+        }
+      ],
+      "risk": "An unanswered independent subtraction leaf is promoted to Confirmed/Ready by analogy/code; false oracle.",
+      "proposal": "Restore Q3 Awaiting decision; preserve known subtraction obligation in classified business gap; remove unsupported oracle/Confirmed readiness and invented rounding acceptance; existing percentage confirmation remains intact.",
+      "verification": "Check raw Q3, correct Research/AC/Q&A/scope/TC/workbook authority; no guessed replacement expected."
+    },
+    {
+      "id": "F-05",
+      "prior": false,
+      "source": [
+        "SPEC C5"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 80
+        }
+      ],
+      "risk": "Admin-only variant does not reject a server implementation permitting teachers.",
+      "proposal": "Add teacher direct-server role variant with forbidden response plus no-write assertion for every saved row; explicit actor override/parameter binding; retain valid admin path.",
+      "verification": "Inspect controller role guard; verify teacher and admin variants, role setup/observation, saved-state preservation and workbook keys."
+    },
+    {
+      "id": "F-06",
+      "prior": false,
+      "source": [
+        "SPEC C4",
+        "confirmation Q4",
+        "fixture-preparation.md"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-data.vi.md",
+          "line": 21
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-data.vi.md",
+          "line": 24
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 122
+        }
+      ],
+      "risk": "Same-school/year/course isolation cannot be distinguished and reset relies on hidden next-case state.",
+      "proposal": "Restore N-year/N-course sentinels and before/after observations in TD-01/TC-04; reset all values/flags before each variant/case with verified recipe; update corresponding Data projection.",
+      "verification": "Compare all three source sentinel scopes/values, test action/expected and reset; a writes-all-years mutation must fail."
+    },
+    {
+      "id": "F-07",
+      "prior": false,
+      "source": [
+        "SPEC C6"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 144
+        }
+      ],
+      "risk": "Disabled execution expects recomputation contrary to preserve-and-skip requirement.",
+      "proposal": "Correct TC-05 and AC exception to skipped with byte-equivalent saved rows; retain disabled setup and enabled main path.",
+      "verification": "Read disabled controller branch; compare source/AC/case/projection expectations and preservation."
+    },
+    {
+      "id": "F-08",
+      "prior": false,
+      "source": [
+        "SPEC C8",
+        "fixture-preparation.md last paragraph"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 149
+        },
+        {
+          "path": "inputs/standalone/test-spec/scope-and-approach.vi.md",
+          "line": 53
+        }
+      ],
+      "risk": "Known missing-source oracle is declared Ready despite unavailable preparation; coverage gaps concealed.",
+      "proposal": "Retain C8 expected error/no-partial-write, mark TC-06 Blocked with preparation gap and smallest supported setup check; map gap in scope/workbook; do not delete/N/A the obligation.",
+      "verification": "Check source preparation limitation and separate Confirmed expected/Blocked readiness/NOT RUN execution."
+    },
+    {
+      "id": "F-09",
+      "prior": false,
+      "source": [
+        "SPEC C4",
+        "VI counterpart"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-cases.ja.md",
+          "line": 123
+        }
+      ],
+      "risk": "Companion changes negation/preservation while IDs and field shape still match.",
+      "proposal": "Align JA TC-04 preserved non-target result with source/VI; preserve exact IDs and scopes; refresh fingerprints at new revision.",
+      "verification": "Compare meaning, including negation and all scope sentinels; token/ID equality alone insufficient."
+    },
+    {
+      "id": "F-10",
+      "prior": false,
+      "source": [
+        "registry same-revision/fingerprints"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "B3"
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "B11"
+        }
+      ],
+      "risk": "Workbook design-v1 and stale JA fingerprint do not match design-v2 source artifacts.",
+      "proposal": "Identify stale revision/fingerprint cells and regenerate a requested new projection from corrected Markdown; preserve the input execution-bearing workbook/history and never copy old results.",
+      "verification": "Check all three sheet revisions and hashes of supplied six source Markdown files; distinguish exporter/readback structural proof from recalculation."
+    },
+    {
+      "id": "F-11",
+      "prior": false,
+      "source": [
+        "Markdown projection parity"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Cases",
+          "cell": "P9"
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-cases.vi.md",
+          "line": 69
+        }
+      ],
+      "risk": "Workbook TC-02 expected79 differs from current Markdown80, even though workbook is nearer the correct business oracle.",
+      "proposal": "Correct source TC-02 to79 then regenerate same-revision projection; report both source-oracle and projection consistency rather than choosing workbook as authority.",
+      "verification": "Verify source Q2, TC-02 inline/variant expected, Cases expected and source fingerprints."
+    },
+    {
+      "id": "F-12",
+      "prior": false,
+      "source": [
+        "mandatory variant key parity"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "C26"
+        }
+      ],
+      "risk": "TC-02 fraction variant exists in Markdown but its Run key is blank, preventing complete per-variant reporting.",
+      "proposal": "Restore independently reportable TC-02:fraction Run row in corrected new projection; keep stable Case/Variant identity and do not invent results.",
+      "verification": "Compare complete Markdown mandatory variant set to Run Case ID/Variant keys, including base variants."
+    },
+    {
+      "id": "F-13",
+      "prior": false,
+      "source": [
+        "execution identity/evidence and aggregate status"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "I25"
+        },
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "R25"
+        }
+      ],
+      "risk": "PASS lacks Run ID/tester/time/actual/evidence and aggregate is hardcoded; design inspection masquerades as execution.",
+      "proposal": "Do not validate these PASS claims; separate recorded unverified results from source state, require real execution identity/proof, repair aggregate formula in requested new unrun projection while preserving original history.",
+      "verification": "Inspect B5/J25/K25/M25/N25/O25 and required variant assessment; never run app tests as review side effect."
+    },
+    {
+      "id": "F-14",
+      "prior": false,
+      "source": [
+        "zero-denominator no-data rule"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Run",
+          "cell": "B22"
+        }
+      ],
+      "risk": "Hardcoded100 percent with no valid assessed variants creates a false completion impression.",
+      "proposal": "Restore supported PASS/(PASS+FAIL) formula and No data zero-denominator behavior in requested new workbook; do not claim recalculation from formula inspection.",
+      "verification": "Inspect denominator/ranges and invalid/unassessed status exclusion; actual renderer/calculation remains separate proof."
+    },
+    {
+      "id": "F-15",
+      "prior": false,
+      "source": [
+        "SPEC C1/C4",
+        "confirmation Q4"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/combined/task-artifacts/database-design.vi.md",
+          "line": 26
+        }
+      ],
+      "risk": "Proposed school/course-only identity shares settings across academic years and is falsely called mandatory confirmed storage.",
+      "proposal": "Preserve school/year/course isolation in DB representation; mark representation as engineering proposal and justify actual DB-change need using schema research; equivalent existing storage remains valid.",
+      "verification": "Review raw scope, granularity/keys/read-write/lifecycle and year sentinel; unknown actual schema remains a fact gap, no executable migration."
+    },
+    {
+      "id": "F-16",
+      "prior": false,
+      "source": [
+        "test-data TD-01 state",
+        "registry fixture parity"
+      ],
+      "anchors": [
+        {
+          "path": "inputs/standalone/test-spec/test-case-report.xlsx",
+          "sheet": "Data",
+          "cell": "D8"
+        }
+      ],
+      "risk": "Workbook fixture state says another year while Markdown and selected scope target S-A/Y-2/C-A; fixture projection no longer matches source.",
+      "proposal": "Correct Data fixture state from the corrected test-data TD-01 source in a requested new projection; keep selected year and non-target year sentinel distinct; preserve original run history.",
+      "verification": "Compare all fixture role/scope/state/values/create/verify/reset fields between Markdown and Data; verify source hashes/revision without saving reviewed input."
+    }
+  ],
+  "prior_ledger": {
+    "F-01": "OPEN; layout is not strict-below correction",
+    "F-02": "OPEN; layout is not corrected fraction expected",
+    "F-03": "OPEN; Q3 remains unauthorized",
+    "F-04": "DISPROVED with explicit valid same-field CTX-1 resolution; missing repeated prose is not a defect"
+  },
+  "valid_controls": [
+    "Standalone without Task/AC/separate Research is valid.",
+    "CTX-1 explicitly resolves every referenced same-field value without recursive/mixed lookup.",
+    "Boundary and role parameter rows are independently reportable equivalent coverage; priority does not regroup flow.",
+    "Subtraction remains source obligation mapped to G-ROUND, not fabricated oracle.",
+    "Known C8 oracle with verified absent preparation stays Confirmed/Blocked G-PREP/NOT RUN and in scope.",
+    "Equivalent helper organization/current storage is not a mandated violation.",
+    "valid-control workbook keys, revision, six source hashes, expected and NOT RUN are source-aligned; zero denominator formula uses No data."
+  ],
+  "scoring": [
+    "Require all assigned files/languages/workbook inventory and unread disclosure.",
+    "Accept evidence-backed equivalent grouping and IDs for new findings; preserve existing IDs on re-review.",
+    "Finding must name concrete source, file/line or sheet/cell and Case/Variant, scenario/risk, correction/preserved behavior and finite verification.",
+    "False positives and missing material obligations matter separately from wording; no exact-report text matching.",
+    "Compare before/after raw input bytes; no fixes/regeneration/app tests/SQL permitted.",
+    "Template, semantics, coverage, readiness and supplied execution proof assessed separately; unknown/render/recalculation remains limited."
+  ]
+}

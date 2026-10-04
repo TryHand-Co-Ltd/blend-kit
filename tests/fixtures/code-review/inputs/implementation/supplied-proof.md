@@ -1,0 +1,1 @@
+No executed application test, schema SELECT/SHOW FULL COLUMNS screenshot, API/browser/QA/device/release evidence is supplied. MySQL-compatible schema syntax only; actual target engine/version/volume/replica timing and DDL duration are unknown. These source snapshots cannot prove deployed behavior.

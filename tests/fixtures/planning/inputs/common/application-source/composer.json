@@ -1,0 +1,7 @@
+{
+  "name": "synthetic/planning-notice",
+  "require": {"php": ">=8.2"},
+  "scripts": {
+    "lint": ["php -l application/controllers/Notice.php", "php -l application/models/NoticeStore.php"]
+  }
+}

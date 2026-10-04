@@ -1,0 +1,3 @@
+# Topic reuse request
+
+Use the supplied synthetic workspace and source restrictions only. Generate a Markdown-only Test Spec for Task SYN-TOP-042-A, immediate parent SYN-TOP-042, reusing the selected threshold-boundary topics in the handoff. Inspect source/context/confirmation and bounded source as needed. Report a scoped basis delta if decisive evidence differs. Keep all Research inputs immutable and preserve exact IDs/parents. Do not generate Task artifacts, extra Research, workbook, manifests or execute code/SQL. Treat this folder as the discovered feature root; a relocated/spaced folder is also valid.

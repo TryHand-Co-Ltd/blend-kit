@@ -1,0 +1,47 @@
+# Synthetic supplied byte snapshot
+
+These hashes identify supplied raw files only, not Git commits or actual role execution.
+
+| Path | SHA-256 |
+| --- | --- |
+| actual.diff | 9805496cbfccb521f42b39c00dbc5939b1b73278cbd09eded9330d2c90cc39ff |
+| approved-plan.md | c1c4649d8e382a09955f843f2857c872a4b666bdb363e8f4ef282acbef007efb |
+| base/application/config/routes.php | f28c2792bd1b900b01140a29357284969073beb0aba04c819c061e5cca5e3f95 |
+| base/application/controllers/AttendanceExport.php | 6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9 |
+| base/application/controllers/LegacyExport.php | d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468 |
+| base/application/controllers/Score.php | 5adff515206087d31515a5e750d512e514700ca57155152fd2997499b3ddbefc |
+| base/application/helpers/score_helper.php | 594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b |
+| base/application/models/Record_m.php | 3c2b94c25aab59cffffcc2b6681cb9286954c2c0bf43b1e5578e3b21dea70c64 |
+| base/application/views/action.php | 150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d |
+| base/application/views/retired.php | e05b6b8ef4b8cbcf8cb81ecdf2528764c3bc9e6448715e2b2ebdd74e67232f6d |
+| CONTEXT.md | 706460cd5c2c2fc9fa173c42208dbec99cbfe79163fa3a18bb6239124ca02fdf |
+| current/application/config/routes.php | 966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90 |
+| current/application/controllers/AttendanceExport.php | 6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9 |
+| current/application/controllers/LegacyExport.php | d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468 |
+| current/application/controllers/Score.php | 2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40 |
+| current/application/controllers/ScoreJob.php | d4b8789d04f15768512786dca3f66c4550af2c65b5d5e86dbb349c999ddf8cda |
+| current/application/helpers/score_helper.php | 1dc2fa24e2cca06939122137b18051fabfee9d23cd441098843e73a956a17a27 |
+| current/application/migration/2026/score-method.sql | fe1cf6662875736afaa441c6bee2325016397e4183ea2d2aadd34179cef83b59 |
+| current/application/models/Record_m.php | f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3 |
+| current/application/views/action-label.php | 150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d |
+| data-shape.csv | 9876e1550369a6629398d75072d762d4de0096dba3450ca6aef8af6b5dd4f9fb |
+| head/application/config/routes.php | 966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90 |
+| head/application/controllers/AttendanceExport.php | 6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9 |
+| head/application/controllers/LegacyExport.php | d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468 |
+| head/application/controllers/Score.php | 2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40 |
+| head/application/helpers/score_helper.php | 594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b |
+| head/application/models/Record_m.php | f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3 |
+| head/application/views/action-label.php | 150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d |
+| index/application/config/routes.php | 966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90 |
+| index/application/controllers/AttendanceExport.php | 6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9 |
+| index/application/controllers/LegacyExport.php | d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468 |
+| index/application/controllers/Score.php | 2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40 |
+| index/application/helpers/score_helper.php | 594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b |
+| index/application/migration/2026/score-method.sql | fe1cf6662875736afaa441c6bee2325016397e4183ea2d2aadd34179cef83b59 |
+| index/application/models/Record_m.php | f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3 |
+| index/application/views/action-label.php | 150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d |
+| prior-findings.md | 02551432c07cd339de3b2c2ca0a71684e5568174d4eb8e5e4fc9dad362727975 |
+| request.md | f742b99a29e0be94f70b805532f3aa6c735ed073815d4fad897e3aba32b0212e |
+| schema.sql | 0eaa9d26afccb276846d4a57b0bdbb64c89cc831933aec8b26346604f6a8caa2 |
+| snapshot-metadata.json | 0f429c65328033a2fe7e4e1813c3b13171ba61f879e6f290f3a6cbe0487e0189 |
+| supplied-proof.md | 4822d656bfd42c5e0f7677b491aef3e4c4813e0d0a6efc3160e15ae1aca7267a |

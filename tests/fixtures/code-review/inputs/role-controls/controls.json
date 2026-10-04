@@ -1,0 +1,326 @@
+{
+  "kind": "synthetic-supplied-protocol-control-not-actual-agent-runs",
+  "cases": {
+    "missing-hunter": {
+      "Hunter": null
+    },
+    "empty-hunter": {
+      "Hunter": {}
+    },
+    "malformed-hunter": {
+      "Hunter": {
+        "verdict": "NO_CANDIDATES"
+      }
+    },
+    "missing-skeptic": {
+      "Hunter": {
+        "candidate_id": "C-1",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "supplied synthetic code location and trigger",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "CANDIDATE",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      },
+      "Skeptic": null
+    },
+    "malformed-referee": {
+      "Hunter": {
+        "candidate_id": "C-1",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "supplied synthetic code location and trigger",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "CANDIDATE",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      },
+      "Skeptic": {
+        "candidate_id": "C-1",
+        "role": "Skeptic",
+        "run_identity": "supplied synthetic skeptic pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "supplied synthetic code location and trigger",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "STANDS",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      },
+      "Referee": {
+        "verdict": "REAL_BUG"
+      }
+    },
+    "valid-zero": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "independent-required-unavailable": {
+      "independent_required": true,
+      "backend_available": false
+    }
+  },
+  "schema_cases": {
+    "local-claims-independent": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": true,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "independent-string": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": "false",
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "independent-number": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": 0,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "basis-empty-object": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": {},
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "basis-empty-list": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": [],
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "basis-whitespace": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "  ",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "evidence-empty-object": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": {},
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "evidence-empty-list": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": [],
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "evidence-whitespace": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "  ",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "run-identity-whitespace": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "  ",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "depth-not-run": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "not-run",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "depth-evidence-only": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "evidence-only",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "depth-missing": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "missing",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "depth-unreviewed": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "UNREVIEWED",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "verdict-unreviewed": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "UNREVIEWED",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      }
+    },
+    "independence-required-local-fallback": {
+      "Hunter": {
+        "candidate_id": "none",
+        "role": "Hunter",
+        "run_identity": "supplied synthetic local pass, completed",
+        "backend": "local-sequential",
+        "independent": false,
+        "basis": "synthetic-byte-snapshot",
+        "evidence": "completed source inventory with zero supported candidates",
+        "counter_evidence": "protective callers inspected",
+        "verdict": "NO_CANDIDATES",
+        "depth": "direct-source",
+        "limits": "synthetic control; reduced independence; no runtime"
+      },
+      "independent_required": true,
+      "backend_available": true
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Review every supplied task-artifacts and test-spec JA/VI/workbook against raw SPEC/current CONTEXT/confirmation and decisive code. Re-review prior-findings.md; retain IDs and verify closure, including challenged old claims. Report in Vietnamese with proposals; do not edit input, regenerate workbook, run application tests/SQL or publish.

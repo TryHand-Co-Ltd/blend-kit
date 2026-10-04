@@ -1,0 +1,2 @@
+# Supplied frozen Research snapshot — synthetic source evidence
+Specification SYN-001, revision fixture-r2: S1 strict-below + truncation + AND enabled; S2 owner guard; S3 Q1 unknown oracle; S4 import scope known but preparation gap G-02. Current fixture controller preview has owner guard and floor(maximum*0.60), strict <; no persistence writes. Read actual supplied bytes and retain content identity in handoff. No live execution proof. Reuse Q1/G-02.

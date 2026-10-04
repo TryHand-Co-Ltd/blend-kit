@@ -1,0 +1,1 @@
+Review every supplied test-spec JA/VI/workbook against raw SPEC/current CONTEXT/confirmation, fixture preparation and decisive code. Standalone scope has no Task/AC/separate Research prerequisite. Report in Vietnamese using blend-review-artifacts; no input mutation, regeneration, application tests/SQL or publication.

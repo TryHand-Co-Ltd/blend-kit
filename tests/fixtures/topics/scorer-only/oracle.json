@@ -1,0 +1,96 @@
+{
+  "model_input_roots": [
+    "inputs/runtime-input",
+    "inputs/changes",
+    "inputs/legacy-input"
+  ],
+  "identity": {
+    "feature": "SYN-TOP-042",
+    "task": "SYN-TOP-042-A",
+    "parent": "SYN-TOP-042"
+  },
+  "selected_topics": [
+    "research/SYN-TOP-042-A-threshold-boundary.ja.md",
+    "research/SYN-TOP-042-A-threshold-boundary.vi.md"
+  ],
+  "dependencies": [
+    "CONTEXT.md",
+    "sources/spec.md",
+    "sources/confirmation.md",
+    "Blend-source/application/models/Score.php"
+  ],
+  "captured": {
+    "research/SYN-TOP-042-A-threshold-boundary.ja.md": "f51b006d25135c209b738aab0cccdf4022f493094997b2165e286dd347ae8942",
+    "research/SYN-TOP-042-A-threshold-boundary.vi.md": "ff45d1794547dafff9a6e4d99158e8016029ac62f606e0206d77874a3d13d5c3",
+    "CONTEXT.md": "92c5085a7bb0872796c977bbb07d6920280b99ea6d50ad466bae253cb8725d5e",
+    "sources/spec.md": "73e53e752b9691921bcc52c9b38bd7a4fc50263129b116704ac2c64cbe9ff2a2",
+    "sources/confirmation.md": "21985b19ba14fa0ea0137e16bcce80b2cd2d45bdde388743a13a9ee002f1273d",
+    "Blend-source/application/models/Score.php": "aa10cef6aec3bbb4298cf0fd56af5f83eb835a1bad0098948d06f2e52f63f093"
+  },
+  "legacy_identity": "3248f6a1988e718bacf408a00cd38bf6079d85c2bb5f515834d2f545141f9f1f",
+  "controls": [
+    {
+      "name": "selected-topic-changed",
+      "overlay": "selected-topic.vi.md",
+      "destination": "research/SYN-TOP-042-A-threshold-boundary.vi.md",
+      "changed": [
+        "research/SYN-TOP-042-A-threshold-boundary.vi.md"
+      ]
+    },
+    {
+      "name": "confirmation-changed",
+      "overlay": "confirmation.md",
+      "destination": "sources/confirmation.md",
+      "changed": [
+        "sources/confirmation.md"
+      ]
+    },
+    {
+      "name": "code-changed",
+      "overlay": "Score.php",
+      "destination": "Blend-source/application/models/Score.php",
+      "changed": [
+        "Blend-source/application/models/Score.php"
+      ]
+    },
+    {
+      "name": "unrelated-topic-added",
+      "overlay": "unrelated-topic.vi.md",
+      "destination": "research/export-format.vi.md",
+      "changed": []
+    },
+    {
+      "name": "unrelated-topic-edited",
+      "overlay": "unrelated-topic.vi.md",
+      "destination": "research/export-caption.vi.md",
+      "changed": []
+    }
+  ],
+  "semantic_oracle": {
+    "original_confirmation": {
+      "threshold": 60,
+      "red": [
+        59
+      ],
+      "non_red": [
+        60,
+        61
+      ]
+    },
+    "changed_confirmation": {
+      "threshold": 55,
+      "red": [
+        54
+      ],
+      "non_red": [
+        55,
+        56
+      ]
+    },
+    "changed_code": "Equality classification violates confirmed strict-below; source regression, not new business authority.",
+    "changed_selected_topic": "Reject unsupported equality conclusion even if code/source otherwise unchanged.",
+    "unrelated": "No selected-basis invalidation solely from independent topic addition/edit.",
+    "limits": "No route/runtime observed; expected confirmed, seam readiness Draft. Same hash alone never proves conclusion valid.",
+    "legacy": "Read original 1.0.0 schema/baseline, preserve bytes; reject as current 1.1.0 output."
+  }
+}

@@ -1,0 +1,4 @@
+SYNTHETIC SOURCE SCHEMA — not target database observation.
+notices: id INT primary key; school_id/year/owner_id/group_id INT not null;
+body TEXT not null; state VARCHAR(20) not null, existing draft/published states.
+No schema or lifecycle changes are part of this wording request.

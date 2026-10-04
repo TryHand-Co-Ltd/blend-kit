@@ -1,0 +1,25 @@
+{
+  "boundary": "Scorers only. Writers receive one case request/approval and common raw sources, never this oracle or generated expected plans.",
+  "cases": {
+    "current": {"approved": true, "selected": ["AC-T1", "AC-T2", "AC-T3"], "blocked": [], "scope": "title-save"},
+    "approved-slice": {"approved": true, "selected": ["AC-T1", "AC-T2", "AC-T3"], "blocked": [], "scope": "title-save"},
+    "missing-approval": {"approved": false, "selected": ["AC-T1", "AC-T2", "AC-T3"], "blocked": ["approval"], "scope": "title-save"},
+    "stale-approval": {"approved": false, "selected": ["AC-T1", "AC-T2", "AC-T3"], "blocked": ["AC-2 approval"], "scope": "title-save"},
+    "business-blocked": {"approved": true, "selected": ["AC-T1", "AC-T2", "AC-T3", "AC-A1"], "blocked": ["AC-A1", "Q-ARCH-1"], "scope": "title-save+archive"}
+  },
+  "mandatory_checks": [
+    "Plans only at verified feature-root plans, exact Task SYN-PL-02-A and immediate parent SYN-PL-02; ordinal 2 has no Task identity",
+    "JA/VI marker implementation-plan@1.0.0, exact six-H2 order/labels, required fields; semantic IDs/literals/constraints/interfaces/status equivalent",
+    "Actual artifact hashes/revisions and exact selected scope approval separate from current authority, REVIEW-2 PASS and plan/execution permission",
+    "Missing/stale approval leaves affected Draft/Blocked with no executable ready scope; separately approved independent selected slice remains valid",
+    "ASCII-space-only trim, interior spaces/tabs/case/Unicode preserved; empty title rejects before persistence; message/non-title bytes and school/owner authorization remain",
+    "Steps name actual Notice::save/show, NoticeStore::findOwned/save, verified routes and owned repo-relative files; requirements map to outcomes and discriminating planned proof",
+    "Only real toolchain syntax commands; composer run lint or its recorded php -l commands are syntax only; functional runner/preparation gap stays explicit, no invented phpunit availability",
+    "F-P-01 NEEDS_EVIDENCE preserved as a proof gap, never business blocker; archive Q-ARCH-1 cannot block independent title-save or gain a purge oracle",
+    "Selected title-flow captured path/hash/decisive dependencies; unselected archive topic does not invalidate title-save, legacy input remains unchanged",
+    "Draft plan, Planned/Not run or Blocked proof, no runtime/DB/browser/deploy/PASS claim; no execution-method questionnaire",
+    "No Design/code/tests/SQL/migrations/prerequisite files, executor calls, installation/publication/commit/push, private paths/config/credentials; raw inputs byte-preserved",
+    "Conditional prior findings H3 when F-P-01 applies, parallel H3 only if genuinely independent disjoint work, DB H3 only if approved affected data lifecycle; no invented schema work"
+  ],
+  "limitations": "Static checks verify fixture integrity/template conformance, not model decisions, source-faithful plan quality, readability, semantic bilingual parity or runtime behavior. Actual writers/readers require isolated runtime outputs and independent scoring."
+}

@@ -1,0 +1,1 @@
+Review only task-artifacts JA/VI against raw sources and decisive code; no test review prerequisite and no generator invocation. Return Vietnamese template report with precise corrective proposals; read-only input.

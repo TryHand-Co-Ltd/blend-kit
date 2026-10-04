@@ -1,0 +1,5 @@
+Synthetic approved baseline plan-v2, approval source supplied fixture statement, role owner, date 2026-10-02. Approval applies only to SYN-101 and AC-1 through AC-4 at context-v2; no operational permission. Expected surfaces: Score endpoint and Record model, method column migration. Preserve all shared score consumers and non-target rows. No intended helper boundary change. Engineering alternatives are valid if obligations hold. Source/code snapshots are synthetic; this is not a real Git commit or real customer approval.
+AC-1: equality is normal, only a score strictly below the threshold is flagged, including attendance export.
+AC-2: exposed records must match the authenticated school and academic year, including the added raw export.
+AC-3: existing offsets/non-target rows remain unchanged; method values fit nullable-compatible existing records, and migration is compatible/rerunnable or documents necessary controlled failure recovery.
+AC-4: calculation action wording remains Calculate.

@@ -1,0 +1,113 @@
+{
+  "kind": "independent-scorer-expected-evidence-not-writer-input",
+  "findings": [
+    {
+      "id": "F-SHARED",
+      "scope": "OUT_OF_SCOPE",
+      "origin": "INTRODUCED",
+      "effect": "Regression blocker",
+      "anchor": "application/helpers/score_helper.php:4",
+      "trigger": "score equals threshold in AttendanceExport",
+      "expected": "normal",
+      "actual": "flagged",
+      "proposal": "restore strict boundary in helper, preserve every consumer",
+      "verify": "below/equal/above through score and attendance"
+    },
+    {
+      "id": "F-NEW-CALLER",
+      "scope": "IN_SCOPE",
+      "origin": "INTRODUCED",
+      "effect": "Task blocker",
+      "anchor": "application/controllers/Score.php:17",
+      "trigger": "foreign school/year ID via raw route",
+      "expected": "denied before disclosure",
+      "actual": "record exposed through unchanged getById",
+      "proposal": "authorize added caller before disclosure",
+      "verify": "own/foreign school and current/foreign year"
+    },
+    {
+      "id": "F-LEGACY",
+      "scope": "OUT_OF_SCOPE",
+      "origin": "PRE_EXISTING",
+      "effect": "Follow-up",
+      "anchor": "application/helpers/score_helper.php:8",
+      "trigger": "legacy export no alias",
+      "proposal": "separate follow-up preserves export behavior",
+      "verify": "missing alias; same base/current"
+    },
+    {
+      "id": "F-AC-LABEL",
+      "scope": "IN_SCOPE",
+      "origin": "INTRODUCED",
+      "severity": "Low",
+      "effect": "Task blocker",
+      "anchor": "application/controllers/Score.php:13",
+      "trigger": "calculation action wording",
+      "expected": "Calculate",
+      "actual": "Run",
+      "proposal": "align action label with AC-4",
+      "verify": "actual method/action rendered wording; no behavioral validity filter"
+    },
+    {
+      "id": "F-REPLICA",
+      "scope": "IN_SCOPE",
+      "origin": "INTRODUCED",
+      "effect": "Regression blocker",
+      "anchor": "application/models/Record_m.php:11",
+      "trigger": "read(0) leaves read-only scope open",
+      "proposal": "place query-free guard before start and restore on exits",
+      "verify": "empty and valid read followed by writer; missing runtime proof"
+    },
+    {
+      "id": "F-READ-WRITE",
+      "scope": "UNRESOLVED",
+      "origin": "INTRODUCED",
+      "effect": "Needs evidence",
+      "anchor": "application/controllers/ScoreJob.php:6",
+      "trigger": "save followed by replica read before catch-up",
+      "proposal": "inspect consistency requirements/consumers; reuse saved values or writer consistency",
+      "verify": "replica lag evidence; single DB test insufficient"
+    },
+    {
+      "id": "F-BACKFILL",
+      "scope": "IN_SCOPE",
+      "origin": "INTRODUCED",
+      "effect": "Task blocker",
+      "anchor": "application/migration/2026/score-method.sql:2",
+      "trigger": "UPDATE overwrites every existing/non-target offset",
+      "proposal": "preserve existing values and scope authorized backfill",
+      "verify": "offset 5/NULL/7 and non-target preservation; partial failure/rerun"
+    },
+    {
+      "id": "F-DDL",
+      "scope": "IN_SCOPE",
+      "origin": "INTRODUCED",
+      "effect": "Release risk",
+      "anchor": "application/migration/2026/score-method.sql:1",
+      "trigger": "new NOT NULL/duplicate unique/FK and split ALTERs",
+      "proposal": "follow nullable compatibility, duplicate policy, no-FK/comments/consolidation; bounded recovery",
+      "verify": "missing target engine/version/volume/locks/schema screenshot; no zero-lock assurance"
+    }
+  ],
+  "disproof": {
+    "candidate": "ID-only SELECT lacks authorization in show",
+    "path": "application/controllers/Score.php:6",
+    "verdict": "NOT_A_BUG",
+    "reason": "show checks school/year before disclosure in both baseline/current"
+  },
+  "role_controls": {
+    "missing-hunter": "UNREVIEWED",
+    "empty-hunter": "UNREVIEWED",
+    "malformed-hunter": "UNREVIEWED",
+    "missing-skeptic": "UNREVIEWED",
+    "malformed-referee": "UNREVIEWED",
+    "valid-zero": "NO_CANDIDATES",
+    "independent-required-unavailable": "UNREVIEWED"
+  },
+  "grouping": "IDs are scorer topics, not a mandated finding count. Split independently correctable obligations within DB topics; group downstream symptoms sharing one root. Equivalent evidence-backed grouping is valid.",
+  "baseline_control": {
+    "status": "Partial / Needs evidence",
+    "origin": "UNKNOWN",
+    "prohibition": "No HEAD~1 or plan list as actual diff; current source facts remain reportable"
+  }
+}

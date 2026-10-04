@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+~$*
+.DS_Store
+Thumbs.db
+
+# Local/raw evaluation evidence may contain workstation paths and runtime logs.
+tests/results/
+docs/test_results/
+docs/plans/

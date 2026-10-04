@@ -1,0 +1,15 @@
+* -text
+*.md diff
+*.txt diff
+*.py diff
+*.json diff
+*.jsonl diff
+*.csv diff
+*.sql diff
+*.toml diff
+*.ps1 diff
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary

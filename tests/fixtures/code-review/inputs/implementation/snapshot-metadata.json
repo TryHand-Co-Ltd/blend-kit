@@ -1,0 +1,69 @@
+{
+  "kind": "synthetic-byte-snapshots-not-observed-git",
+  "base": "synthetic-base",
+  "head": "synthetic-head",
+  "included_commits": "not supplied; not actual Git commit evidence",
+  "files": {
+    "base": {
+      "application/helpers/score_helper.php": "594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b",
+      "application/models/Record_m.php": "3c2b94c25aab59cffffcc2b6681cb9286954c2c0bf43b1e5578e3b21dea70c64",
+      "application/controllers/Score.php": "5adff515206087d31515a5e750d512e514700ca57155152fd2997499b3ddbefc",
+      "application/controllers/AttendanceExport.php": "6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9",
+      "application/controllers/LegacyExport.php": "d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468",
+      "application/config/routes.php": "f28c2792bd1b900b01140a29357284969073beb0aba04c819c061e5cca5e3f95",
+      "application/views/action.php": "150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d",
+      "application/views/retired.php": "e05b6b8ef4b8cbcf8cb81ecdf2528764c3bc9e6448715e2b2ebdd74e67232f6d"
+    },
+    "head": {
+      "application/helpers/score_helper.php": "594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b",
+      "application/models/Record_m.php": "f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3",
+      "application/controllers/Score.php": "2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40",
+      "application/controllers/AttendanceExport.php": "6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9",
+      "application/controllers/LegacyExport.php": "d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468",
+      "application/config/routes.php": "966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90",
+      "application/views/action-label.php": "150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d"
+    },
+    "index": {
+      "application/helpers/score_helper.php": "594e15603393283026b28915846897ccf8833bd41d58a87706622f6b066d220b",
+      "application/models/Record_m.php": "f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3",
+      "application/controllers/Score.php": "2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40",
+      "application/controllers/AttendanceExport.php": "6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9",
+      "application/controllers/LegacyExport.php": "d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468",
+      "application/config/routes.php": "966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90",
+      "application/views/action-label.php": "150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d",
+      "application/migration/2026/score-method.sql": "fe1cf6662875736afaa441c6bee2325016397e4183ea2d2aadd34179cef83b59"
+    },
+    "current": {
+      "application/helpers/score_helper.php": "1dc2fa24e2cca06939122137b18051fabfee9d23cd441098843e73a956a17a27",
+      "application/models/Record_m.php": "f47048cb4b726508a97d27435799b67f99c7cf468b752ae1c8d9b09e3ac179e3",
+      "application/controllers/Score.php": "2b73b3fde90b1967636e36be5205ba79c0ef92025c3c22a0c93d255252362c40",
+      "application/controllers/AttendanceExport.php": "6874bbe6ee2cb64e77794806450935b7a91babbee9dd55515a4893ca186d2ed9",
+      "application/controllers/LegacyExport.php": "d610eabebc070d6f89d621599c2e24963ce221d531753ea07f595fa27ff72468",
+      "application/config/routes.php": "966b1d1e11856997b532f6d7d6c4d31d0ba80caa8f56101fa3f5c3c2e79f0d90",
+      "application/views/action-label.php": "150d33db468862f18ba0db678d122602254699c6890a4ddf0d225cd492094a5d",
+      "application/migration/2026/score-method.sql": "fe1cf6662875736afaa441c6bee2325016397e4183ea2d2aadd34179cef83b59",
+      "application/controllers/ScoreJob.php": "d4b8789d04f15768512786dca3f66c4550af2c65b5d5e86dbb349c999ddf8cda"
+    }
+  },
+  "working": {
+    "staged": [
+      "application/migration/2026/score-method.sql"
+    ],
+    "unstaged": [
+      "application/helpers/score_helper.php"
+    ],
+    "untracked": [
+      "application/controllers/ScoreJob.php"
+    ],
+    "renamed": [
+      [
+        "application/views/action.php",
+        "application/views/action-label.php"
+      ]
+    ],
+    "deleted": [
+      "application/views/retired.php"
+    ]
+  },
+  "comparison": "cumulative base-to-current source; head/index/current snapshots separate dirty bytes"
+}

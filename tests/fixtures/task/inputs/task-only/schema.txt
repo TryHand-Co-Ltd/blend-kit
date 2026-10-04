@@ -1,0 +1,5 @@
+SYNTHETIC SOURCE SCHEMA — not target database observation.
+notices: id INT primary key; school_id INT not null; year INT not null;
+owner_id INT not null; group_id INT not null; body TEXT not null;
+state VARCHAR(20) not null, existing values draft/published.
+One row = one announcement in one school/year. Group membership is unchanged.

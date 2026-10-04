@@ -1,0 +1,33 @@
+# BLEND Kit — common review policy
+
+Mandatory for `blend-review-artifacts` and `blend-review-code`, together with [workflow](workflow.md), [template registry](artifact-formats.md) and [behavioral protocol](bug-hunter.md). Artifact/code references add their specific checks; do not maintain a second evolving classification, closure or role policy. Current CONTEXT and latest authorized confirmations remain authoritative; Research/code/review prove only their recorded evidence stage.
+
+## Scope and evidence
+
+Pin verified identity, current source/confirmation and document/code working revisions, all assigned inputs/languages and prior finding ledger. Code review uses ReviewBasis; artifact review uses its scoped inventory. Read every assigned material input and decisive surrounding code; inventory records actual method, inspected/skipped state and limit. A search hit, part-name search or inferred capability is not decoded content inspection, and another file's error does not prove an attempted read. Missing/unread/ambiguous material scope prevents full-review completion.
+
+Reconstruct obligations independently from raw authorized sources: actor, action, branch/settings, outcome, exceptions and preserved state. Verify decisive Research conclusions and actual entry/route → guards → branch/state → persistence → readback → affected callers/consumers/lifecycle. Trace necessary direct/dynamic wiring, then stop expansion when another read is unlikely to change the scoped conclusion. No whole-repository hunt by default. Latest authorization supersedes history; known expected with missing fixture is a proof/preparation gap, unknown expected is a business gap.
+
+Inspect Spec/Tests/Standards independently from behavioral validity. A required criterion/rule/testcase defect is not removed because it is not a runtime bug. Accept equivalent engineering and coverage when they preserve authority and independently observable outcomes. Challenge candidates with protective guards/callers, exceptions and equivalent base/current reachability before attribution. Use the mandatory common behavioral protocol for actual behavioral candidates; documentary/standards defects need no runtime-bug label.
+
+## Finding axes and correction
+
+| Axis | Values and evidence |
+| --- | --- |
+| Scope | IN_SCOPE / OUT_OF_SCOPE / UNRESOLVED against actual assignment/obligation, not filename alone. |
+| Origin | INTRODUCED / WORSENED / PRE_EXISTING / UNKNOWN; compare equivalent base/current reachability, not blame or old lines alone. |
+| Severity | Critical / High / Medium / Low by concrete trigger, users/data and impact. |
+| Confidence | Evidence strength and unresolved paths, independent of severity; no numeric validity gate. |
+| Completion effect | Task blocker / Regression blocker / Release risk / Follow-up / Needs evidence; independent of scope/severity. Artifact-only blocking obligation/non-blocking follow-up labels map to these effects. |
+
+An introduced/worsened failure of a required preserved shared flow remains a regression blocker even when its owner is outside the primary feature. OOS never defaults to non-blocking. Unrelated proven pre-existing defects remain visible follow-ups/release risks without falsely attributing them to the patch. Unknown origin stays UNKNOWN until compared; unresolved release risk requires an owner decision, not silent acceptance.
+
+One stable ID per root cause/trigger. Every finding names the exact source/rule/invariant, precise file/line/revision or sheet/cell/Case/Variant, actor/trigger, expected/actual, impact, supporting and counter-evidence, axes, update proposal, finite verification and limits. Corrective proposals name affected files/obligations/consumers, necessary action and preserved behavior; do not invent an oracle or demand a preferred helper/schema without authority/risk. Runtime, DB, browser, QA and release evidence stay separate from static checks.
+
+Split independently correctable obligations when fixing one leaves another independently failing. Keep downstream symptoms of one root together. After grouping, verify finding-ID links support the actual referenced topic/proposal/closure; reconcile summary and ledger. Reviewed inputs remain unchanged, including dirty work and execution-bearing histories. No fixes, test execution, SQL, install/config, publication or release follows from review.
+
+## Closure and verdicts
+
+Re-review preserves IDs and prior evidence: **OPEN**, **FIXED_VERIFIED**, **DISPROVED**, **DEFERRED**, **NEEDS_EVIDENCE**. FIXED_VERIFIED requires the change plus relevant proof actually inspected; DEFERRED requires authorized follow-up and is not fixed; DISPROVED cites refuting evidence. Changed authority/code/consumer paths may reopen an item with a recorded reason; renamed files do not generate new IDs.
+
+Artifact reports separate template compliance, semantics, coverage, readiness and executed proof. Code reports separate assigned acceptance, regression, standards, DB risk and runtime/QA/release proof. Inapplicable axes require scoped justification; missing evidence, role outputs or unread material paths cannot become PASS. A valid Draft can preserve decision gaps without claiming executable coverage. A no-findings result describes only the completed assigned scope and actual depth, never all features safe.

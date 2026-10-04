@@ -1,0 +1,18 @@
+---
+name: blend-plan-implementation
+description: Create a portable Japanese–Vietnamese BLEND implementation plan from explicitly approved artifact revisions and selected scope, current blend-context, artifact-review disposition and the affected codebase. Planning only; do not create Design or execute implementation.
+---
+
+# Blend Plan Implementation
+
+Turn approved outcomes into an actionable plan for the team. Read [shared workflow](_kit/shared/workflow.md), [template registry](_kit/shared/artifact-formats.md) and [planning reference](references/planning.md). Resolve package resources from this skill and checkouts through bounded discovery; the installed package is not the application root.
+
+1. Read applicable workspace/documentation/application instructions and development rules. Verify the exact feature, Task ID when selected, immediate parent, current CONTEXT and authorized confirmations; reuse existing folders/slugs. Scope comes from the user's approved selection, never Split Task numbering or title similarity.
+2. Verify **PlanningBasis** against actual artifact bytes/revisions, artifact review and explicit approval of those revisions and scope. Keep source authority, review PASS and approval separate. Missing/stale approval or business blockers affect only dependent scope; an explicitly approved independent selected slice can proceed. Do not generate missing Task/Design/Test Spec prerequisites or amend approved behavior.
+3. Read the affected code flow/callers and selected relevant topics/dependencies. Pin Git and working-content identities; verify available toolchain commands without running application checks. Decompose supported outcomes into steps with files/symbol roles, prerequisites, ownership/contracts, binding obligations and AC-to-step-to-planned-proof mapping.
+4. Resolve every requested language/output in the registry and load its exact `implementation-plan@1.0.0` asset. Default to JA/VI at `features/<verified-feature>/plans/<scope>-implementation-plan.{ja,vi}.md`, including task-scoped metadata. Retain six required H2 sections, explicit none where applicable and only predicate-supported conditional H3s. Missing mapping/template blocks that output.
+5. Reconcile source, approval, constraints, IDs, interfaces and meaning between versions. Leave the plan **Draft** for review; identify affected Blocked scope and unrun proof. Return shared **BranchResult** with actual paths, basis used, completed/incomplete scope, gaps/deltas and status.
+
+Write only authorized plan files. Preserve dirty/historical files and frozen inputs. Shared paths/commands are portable; no workstation configuration, private plans or secrets. No Design, code, automated tests, SQL/migrations, executor calls, execution-method questionnaire, installation, publication or release follows. Approval of the inputs or this plan never substitutes for separate execution authorization.
+
+Distribution resource base: the directory containing this `SKILL.md`. Shared policy and registry are bundled under `_kit/shared/`; registry paths resolve from this skill root. Invocation by skill name uses the separate installed entrypoint; no nested entrypoint is bundled.
