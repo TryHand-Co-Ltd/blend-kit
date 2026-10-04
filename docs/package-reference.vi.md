@@ -2,6 +2,21 @@
 
 Tài liệu dành cho người bảo trì. Cách cài và dùng nằm trong [README](../README.md). Các candidate dưới đây là những mốc kiểm chứng riêng; tên `v6` không phải version plugin đã phát hành trên marketplace.
 
+## Private marketplace package hiện hành
+
+Plugin hiện hành là `blend-kit@tryhand-blend-kit`, version `1.0.0`, được generate tại `dist/plugins/blend-kit`. Ba catalog dùng cùng package này:
+
+- Codex: `.agents/plugins/marketplace.json`.
+- Claude Code: `.claude-plugin/marketplace.json` và manifest package `.claude-plugin/plugin.json`.
+- Cursor: `.cursor-plugin/marketplace.json`; package dùng portable Agent Plugin `plugin.json`.
+
+```powershell
+pwsh -File scripts/build-plugin-package.ps1 -Python python
+pwsh -File scripts/check-plugin-package.ps1
+```
+
+Build đã kiểm có 5 skills, 207 files và tree digest `84f6d975077b7654ac4e77d0490644bc068be97a1270d470f66c0cd100c9eeae`. Đây là package private-marketplace hiện hành; các candidate profile bên dưới là lịch sử/manual distribution và không thay plugin version.
+
 ## Build từ source
 
 Chạy từ thư mục `blend-kit`, bằng Python 3.10+ đã có sẵn. Chọn output mới khi source thay đổi:
@@ -57,7 +72,7 @@ python shared/scripts/artifact_gate.py capture --root <verified-input-root> --fi
 
 `dist/codex`, `dist/cursor`, `dist/claude` là release lịch sử ba skill, giữ nguyên 297 files/digest `3ef339d94abaed5326547a78dc8c4c0403d54bcd4209852c50905625770ce6a3`. `dist/five-skill-candidate` giữ nguyên 564 files của candidate trước. `dist/ja-quality-candidate` giữ nguyên 597 files/digest `e87978912723258301b153b51cb24e22c55ba7a1dc5d2efc0eaa15487e2d7ff9`, đã được dùng cho bốn actual runs; kết quả đó gắn với candidate e879. `dist/ja-quality-candidate-v2` giữ nguyên 597 files/digest `94c9e075f6db1841796c92d9a7e74d97b5e2c6a80c1268dd5e50eea260e2c41b`. Candidate lịch sử `dist/ja-quality-candidate-v3` kiểm riêng từng finding/fixture/bảng RoleDisposition dọc và từ chối captured identity khi phát hiện path drift; bảng RoleDisposition ngang đủ 11 cột theo protocol vẫn hợp lệ. Bằng chứng từ candidate trước không tự chứng minh v3. Source khác bytes phải chọn unused output tree, không overwrite dist cũ. Package controls kiểm closure/relocation/profile bytes, helper source/bundle từ cwd khác, capture raw bytes và preservation; actual runtime samples của năm skill là bước riêng.
 
-Candidate hiện hành tại `dist/unified-test-report-candidate-v6` có 609 files/digest `e081363a20fb8164719212ed5854eff2089cd4abe33200589f7fc0db34269c77`. So với v5, chỉ report model, checker và hướng dẫn thay đổi trong ba profile (9 bản resource); 600 file còn lại giữ nguyên, không thêm/bớt resource. Bản sửa UTR-REV-01 giữ nguyên toàn bộ token URL tới whitespace, đối chiếu quyền truy cập theo URL đầy đủ và ngăn phần đuôi URL bị coi thành lý do lỗi. Hướng dẫn bổ sung thao tác xóa bộ lọc/hiện dòng cột trước khi kiểm tra; không nới guard hoặc đổi schema, asset, renderer hay dependencies.
+Candidate profile lịch sử tại `dist/unified-test-report-candidate-v6` có 609 files/digest `e081363a20fb8164719212ed5854eff2089cd4abe33200589f7fc0db34269c77`. So với v5, chỉ report model, checker và hướng dẫn thay đổi trong ba profile (9 bản resource); 600 file còn lại giữ nguyên, không thêm/bớt resource. Bản sửa UTR-REV-01 giữ nguyên toàn bộ token URL tới whitespace, đối chiếu quyền truy cập theo URL đầy đủ và ngăn phần đuôi URL bị coi thành lý do lỗi. Hướng dẫn bổ sung thao tác xóa bộ lọc/hiện dòng cột trước khi kiểm tra; không nới guard hoặc đổi schema, asset, renderer hay dependencies.
 
 Candidate số liệu trước tại `dist/unified-test-report-candidate-v5` có 609 files/digest `d9a28811c7e6a25b8cddd337d98ec13333b2b71c5723ff3e33fda46864594844`. So với v4, 84 bản resource thay đổi gồm asset, helper metric/identity và hướng dẫn liên quan; 525 resource còn lại giữ nguyên bytes, không thêm/bớt resource. Bốn helper và hai asset đóng gói khớp chính xác snapshot source của kiểm chứng native JA/VI v5b; việc đối chiếu bytes không tự thay thế kết luận của Verify Gate. Công thức workbook và checker dùng cùng điều kiện ghi nhận Đạt/Không đạt: Confirmed + Ready, actual không rỗng sau trim Unicode, trạng thái đúng nhãn và dòng đầu bằng chứng là token https:// độc lập. Các dòng sau ghi lý do/bước tiếp theo. Đây là số kết luận đã ghi nhận; kiểm quyền truy cập và riêng tư vẫn độc lập. Nhãn tổng hợp nêu đúng mẫu số; tất cả kịch bản bị bỏ qua giữ SKIPPED, kết hợp PASS/SKIPPED là chưa đủ kết luận, không thêm trạng thái nhập. Identity trùng khi so sánh không phân biệt hoa/thường bị từ chối, không tự đổi ID.
 

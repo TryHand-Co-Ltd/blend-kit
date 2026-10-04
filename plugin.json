@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "blend-kit",
+  "version": "1.0.0",
+  "description": "BLEND task generation, test specification, artifact review, implementation planning, and code review workflows.",
+  "author": {
+    "name": "TryHand Co., Ltd."
+  },
+  "homepage": "https://github.com/TryHand-Co-Ltd/blend-kit",
+  "repository": "https://github.com/TryHand-Co-Ltd/blend-kit",
+  "license": "UNLICENSED",
+  "keywords": [
+    "blend",
+    "skills",
+    "test-specification",
+    "code-review",
+    "planning"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "BLEND Kit",
+        "shortDescription": "BLEND delivery and review workflows",
+        "longDescription": "Generate and review BLEND task artifacts and test specifications, prepare implementation plans, and review scoped code changes with shared project rules."
+      }
+    }
+  }
+}

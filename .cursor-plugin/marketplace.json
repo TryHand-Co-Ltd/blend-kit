@@ -1,0 +1,32 @@
+{
+  "name": "tryhand-blend-kit",
+  "owner": {
+    "name": "TryHand Co., Ltd."
+  },
+  "metadata": {
+    "description": "Private BLEND workflow plugins for TryHand.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "blend-kit",
+      "source": "./dist/plugins/blend-kit",
+      "description": "BLEND task generation, test specification, review, and planning workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "TryHand Co., Ltd."
+      },
+      "homepage": "https://github.com/TryHand-Co-Ltd/blend-kit",
+      "repository": "https://github.com/TryHand-Co-Ltd/blend-kit",
+      "license": "UNLICENSED",
+      "category": "Developer Tools",
+      "keywords": [
+        "blend",
+        "skills",
+        "test-specification",
+        "code-review",
+        "planning"
+      ]
+    }
+  ]
+}

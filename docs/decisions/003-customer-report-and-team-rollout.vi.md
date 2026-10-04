@@ -36,7 +36,7 @@ Accepted — thiết kế được duyệt ngày 2026-10-03; plan và Parallel �
 
 Operation `customer-report` thuộc Test Spec hiện có, không tạo skill thứ sáu. Source templates chứa conditional layout nhưng simple output không giữ blank/hidden Details. Builder vẫn stdlib, đóng gói helper/template đầy đủ; workbook runtime dùng declared dependencies đã có. CLI cũ và internal templates không đổi.
 
-Theo [migration guidance](../../README.md#6-cập-nhật-chuyển-từ-bản-cũ-rollback-và-gỡ), mapping legacy `generate-unit-test` → `blend-generate-test-spec`, `blend-review-task` → `blend-review-artifacts`, và same-name `blend-generate-task` cần kiểm collision. Chưa xác minh marketplace destination/schema thì không invent metadata hoặc publish.
+Theo [update guidance](../../README.md#update), mapping legacy `generate-unit-test` → `blend-generate-test-spec`, `blend-review-task` → `blend-review-artifacts`, và same-name `blend-generate-task` cần kiểm collision. Chưa xác minh marketplace destination/schema thì không invent metadata hoặc publish.
 
 Structural/data/package checks, actual agent semantic outputs, visual/engine proof, native Excel/accessibility, recipient access và real feature pilot là các lớp bằng chứng riêng. Source/candidate mới không chứng nhận ngược historical samples. Missing runtime/completed run/approval/access cần ghi exact gap trong validation report, không tạo proof giả để hoàn tất.
 

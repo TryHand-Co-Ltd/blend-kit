@@ -1,0 +1,16 @@
+{
+  "name": "tryhand-blend-kit",
+  "description": "Private BLEND workflow plugins for TryHand.",
+  "owner": {
+    "name": "TryHand Co., Ltd."
+  },
+  "plugins": [
+    {
+      "name": "blend-kit",
+      "source": "./dist/plugins/blend-kit",
+      "description": "BLEND delivery and review workflows.",
+      "version": "1.0.0",
+      "category": "productivity"
+    }
+  ]
+}
