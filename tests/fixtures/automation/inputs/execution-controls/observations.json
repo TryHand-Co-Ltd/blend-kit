@@ -1,0 +1,29 @@
+{
+  "fixture_kind": "synthetic-observation-replay",
+  "live_mcp_proof": false,
+  "identity": {"feature_id": "SYN-SC", "design_revision": "scenario-r1", "run_id": "2026-10-05-901", "report": "disposable-scenario-report.xlsx"},
+  "requested_scope": "all variants from the supplied frozen scenario-grouping source trio",
+  "created_text": "Fixed threshold below 30",
+  "events": [
+    {"event": "prepare", "case_id": "TC-SC-01", "variant_id": "lt", "observation": "Independent TD-SC restoration read back scores 29,30,31, non-target82; threshold30 and comparator<."},
+    {"event": "checkpoint", "case_id": "TC-SC-01", "variant_id": "lt", "checkpoint_id": "CP-setup", "observation": "Threshold30; comparator<; scores29,30,31."},
+    {"event": "checkpoint", "case_id": "TC-SC-01", "variant_id": "lt", "checkpoint_id": "CP-result", "observation": "29 and30 marked red;31 not red; total2. Numeric scores unchanged."},
+    {"event": "capture", "case_id": "TC-SC-01", "variant_id": "lt", "checkpoint_id": "CP-result", "tool_result": "Screenshot saved", "full_page": true, "highlight_observation": "Only score29 boxed; score30 and total2 not covered.", "note": "TC-SC-01 / lt: score29 is red.", "actual_pixel_review_reference": null},
+    {"event": "reset", "case_id": "TC-SC-01", "variant_id": "lt", "observation": "Executed restore action; read back initial29,30,31 and non-target82; other rule settings unchanged."},
+    {"event": "prepare", "case_id": "TC-SC-01", "variant_id": "le", "observation": "Independent restoration verified29,30,31, non-target82; selected comparator≤ and threshold30."},
+    {"event": "checkpoint", "case_id": "TC-SC-01", "variant_id": "le", "checkpoint_id": "CP-setup", "observation": "Threshold30; comparator≤; scores29,30,31."},
+    {"event": "checkpoint", "case_id": "TC-SC-01", "variant_id": "le", "checkpoint_id": "CP-result", "observation": "29 and30 marked red;31 not red; total2. Numeric scores unchanged."},
+    {"event": "reset", "case_id": "TC-SC-01", "variant_id": "le", "observation": "Executed restore; read back initial29,30,31 and non-target82."},
+    {"event": "user_stop", "observation": "Stop now before starting TC-SC-02 / cancel."}
+  ],
+  "resume_events": [
+    {"event": "resume_request", "observation": "Continue the same incomplete run; do not rerun concluded TC-SC-01 variants."},
+    {"event": "source_readback", "observation": "Frozen scenario-r1, featureSYN-SC and both source languages unchanged; source readiness remainsDraft."},
+    {"event": "report_readback", "observation": "Saved report identity matches2026-10-05-901; lt disagreement retained; later rows remain Chưa thực hiện."},
+    {"event": "prepare", "case_id": "TC-SC-02", "variant_id": "cancel", "observation": "Only completeR1 restored independently, score29 red, non-target82; fresh session verified."},
+    {"event": "checkpoint", "case_id": "TC-SC-02", "variant_id": "cancel", "checkpoint_id": "CP-before", "observation": "OnlyR1 exists;29 red."},
+    {"event": "checkpoint", "case_id": "TC-SC-02", "variant_id": "cancel", "checkpoint_id": "CP-result", "observation": "Deletion canceled;R1 remains;29 remains red before recalculation."},
+    {"event": "checkpoint", "case_id": "TC-SC-02", "variant_id": "cancel", "checkpoint_id": "CP-after", "observation": "Recalculation complete;R1 remains;29 red; numeric29 unchanged."},
+    {"event": "reset", "case_id": "TC-SC-02", "variant_id": "cancel", "observation": "Restore action performed and initialR1/result verified; non-target82 unchanged."}
+  ]
+}

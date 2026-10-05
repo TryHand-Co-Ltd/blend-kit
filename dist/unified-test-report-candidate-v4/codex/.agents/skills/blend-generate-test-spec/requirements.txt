@@ -1,3 +1,0 @@
-openpyxl>=3.1.2,<4
-# Inspect saved evidence-image content and metadata; no automatic installation.
-Pillow>=12.3,<13

@@ -14,7 +14,8 @@ $expectedSkills = @(
     "blend-generate-test-spec",
     "blend-plan-implementation",
     "blend-review-artifacts",
-    "blend-review-code"
+    "blend-review-code",
+    "blend-automation-test"
 )
 
 foreach ($path in @($sourceManifestPath, $packageManifestPath, $marketplacePath, $claudeManifestPath, $claudeMarketplacePath, $cursorMarketplacePath)) {
@@ -73,7 +74,7 @@ foreach ($catalog in @($claudeMarketplace, $cursorMarketplace)) {
 $skillRoot = Join-Path $packageRoot "skills"
 $actualSkills = @(Get-ChildItem -LiteralPath $skillRoot -Directory -Force | Sort-Object Name | Select-Object -ExpandProperty Name)
 if (($actualSkills -join "`n") -ne (($expectedSkills | Sort-Object) -join "`n")) {
-    throw "Packaged skill inventory differs from the expected five skills."
+    throw "Packaged skill inventory differs from the expected six skills."
 }
 foreach ($name in $expectedSkills) {
     if (-not (Test-Path -LiteralPath (Join-Path $skillRoot "$name\SKILL.md") -PathType Leaf)) {

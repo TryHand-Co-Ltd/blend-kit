@@ -2,22 +2,15 @@
 from __future__ import annotations
 
 import io
+import unicodedata
 import xml.etree.ElementTree as ET
-from copy import copy
 from pathlib import Path
 from zipfile import ZipFile
 
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Font, PatternFill, Protection
-from openpyxl.formatting.rule import CellIsRule
-from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import Alignment, Font
 from openpyxl.worksheet.hyperlink import Hyperlink
-from openpyxl.packaging.core import DocumentProperties
-from openpyxl.workbook.properties import CalcProperties
 
-from report_model import (REPORT_LAYOUTS, VERSION, FAMILY, ReportData, SUMMARY_FIELDS,
-                          INPUT_FIELDS, CASE_HEADER_ROW, CASE_START_ROW,
-                           summary_formulas, detail_backlink_formula, display_lines as _lines, excerpt)
+from report_model import ReportData, display_lines as _lines
 
 INK = '172033'
 LINK = '1D4ED8'
@@ -38,14 +31,24 @@ def _chunks(value, width=95, max_lines=17):
     value = str(value)
     if _lines(value, width) <= max_lines:
         return [value]
-    result, chunk = [], ''
+    result, chunk = [], []
+    completed, units = 0, 0
     for char in value:
-        if chunk and _lines(chunk + char, width) > max_lines:
-            result.append(chunk)
-            chunk = ''
-        chunk += char
+        char_units = 2 if unicodedata.east_asian_width(char) in ('W','F') else 1
+        prospective = (completed + max(1,(units+width-1)//width) + 1 if char == '\n' else
+            completed + max(1,(units+char_units+width-1)//width))
+        if chunk and prospective > max_lines:
+            result.append(''.join(chunk))
+            chunk = []
+            completed, units = 0, 0
+        if char == '\n':
+            completed += max(1,(units+width-1)//width)
+            units = 0
+        else:
+            units += char_units
+        chunk.append(char)
     if chunk:
-        result.append(chunk)
+        result.append(''.join(chunk))
     return result
 
 

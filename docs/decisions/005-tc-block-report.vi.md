@@ -1,5 +1,8 @@
 # 005 — Báo cáo dạng TC block
 
+> Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support.
+
+
 Ngày: 04/10/2026. Trạng thái: người phụ trách đã duyệt hướng layout, gồm trạng thái ở dòng riêng dưới tiêu đề. Thực thi/kiểm chứng và quyền xuất bản là các phạm vi riêng.
 
 Output mới dùng test-report@2.0.0 với đúng hai sheet: Tổng quan và Testcases. Mỗi block có title đầy đủ, dòng trạng thái riêng, tên màn hình/chức năng cạnh URL tương đối không domain; bốn phần Điều kiện kiểm thử, Thao tác, Kết quả mong đợi và Kết quả thực tế. Nhãn kỹ thuật được nhấn đậm, nội dung dùng steps/bullets. Reset cần thiết nằm ở thao tác cuối, không có footer riêng. Một kết quả độc lập cho mỗi biến thể, không dataset ẩn hoặc sheet ảnh thứ ba. Ảnh/kết quả/metadata thực thi ban đầu trống, trạng thái Chưa thực hiện.

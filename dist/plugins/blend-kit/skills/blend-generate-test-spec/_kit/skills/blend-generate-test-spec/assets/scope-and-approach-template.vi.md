@@ -41,7 +41,7 @@
 | --- | --- | --- | --- |
 | [source clause] | [actor, branch, outcome and preservation] | [TC-ID:variant or G-ID] | [discriminating check/equivalence] |
 
-<!-- AUTHORING: Cột Case / variant / gap chỉ chứa ID hiện có: TC-ID, TC-ID:variant hoặc G-ID. Nhiều tham chiếu phân cách đúng dấu phẩy và một khoảng trắng, ví dụ TC-X:a, TC-X:b, G-X. Không lặp ID, dùng dấu chấm phẩy, chú thích bước hoặc văn xuôi trong cột này; chuyển mô tả vào Rationale / proof limit. Các ID ví dụ không phải ID nghiệp vụ mới. -->
+<!-- AUTHORING: Cột Case / variant / gap chỉ chứa ID hiện có: TC-ID, TC-ID:variant, TC-ID:variant:checkpoint (source 1.2.0) hoặc G-ID. Nhiều tham chiếu phân cách đúng dấu phẩy và một khoảng trắng. Không lặp ID, dùng dấu chấm phẩy hoặc văn xuôi trong cột này; old-ID mapping, lane và giải thích nằm ở Rationale / proof limit. ID ví dụ không phải ID nghiệp vụ mới. -->
 
 ### Gaps
 
@@ -51,4 +51,4 @@
 
 <!-- AUTHORING: Mỗi dòng gap có đúng MỘT Kind: business, fact, engineering, preparation hoặc proof; ví dụ fact, không phải fact, proof. Ghi giới hạn thứ cấp vào Missing decision / proof. Nguyên nhân độc lập cần bản ghi gap riêng với ID ổn định, không gộp để che mất blocker. -->
 
-<!-- AUTHORING: No gaps permits no rows and a clear none statement. Coverage always retains every active clause/branch. Research basis records standalone or frozen-handoff reuse, decisive checks and any delta. Exclusions need authority. Source and dirty code revision are independent. -->
+<!-- AUTHORING: No gaps permits no rows and a clear none statement. Coverage retains every active clause/branch; no case-count quota. Rationale / proof limit records each case's Browser/Integration/DB/Security/Performance lane and non-browser proof seams. On authorized grouping refresh map old Case/Variant → new Case/Variant/Checkpoint or gap, obligation, disposition and reduction reason here; do not add an unregistered table. Target references may include TC-ID:variant:checkpoint for test-cases@1.2.0. Tiny UI/persistence checks may become checkpoints only if their obligations remain mapped. Keep permission/lifecycle/source/writer/output branches independently testable. Plan before/setup/result/after/export proof as needed; reviewed viewport images (full page only when necessary) remain inside the same TC in Testcases, with descriptive titles above images and one collapsed evidence group per TC. Configuration is not output proof; actual Excel/PDF file is required. Research basis records standalone or frozen-handoff reuse, decisive checks and delta. Exclusions need authority. Source/code identity, expected authority, readiness and execution remain independent. -->

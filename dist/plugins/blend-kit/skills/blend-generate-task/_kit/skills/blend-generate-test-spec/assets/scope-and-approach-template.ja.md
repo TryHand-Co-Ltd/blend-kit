@@ -41,7 +41,7 @@
 | --- | --- | --- | --- |
 | [source clause] | [actor, branch, outcome and preservation] | [TC-ID:variant or G-ID] | [discriminating check/equivalence] |
 
-<!-- AUTHORING: Case / variant / gap列は既存のTC-ID、TC-ID:variant、G-IDのみ。複数参照はコンマと一つの空白で区切る（例: TC-X:a, TC-X:b, G-X）。ID重複、セミコロン、ステップ注釈、説明文は不可。説明はRationale / proof limit列に書く。例のIDを新しい業務IDとして採用しない。 -->
+<!-- AUTHORING: Case / variant / gap列は既存TC-ID、TC-ID:variant、TC-ID:variant:checkpoint（source1.2.0）、G-IDのみ。複数参照はコンマと一つの空白で区切る。ID重複、セミコロン、説明文は不可。旧ID mapping・lane・理由はRationale / proof limit列へ。例IDを新しい業務IDとして採用しない。 -->
 
 ### Gaps
 
@@ -51,4 +51,4 @@
 
 <!-- AUTHORING: 各gap行のKindはbusiness、fact、engineering、preparation、proofのいずれか一つのみ（例: fact。fact, proofは不可）。二次的な限界はMissing decision / proof列へ。独立原因は安定したIDの別gapとして残し、blockerを隠すために集約しない。 -->
 
-<!-- AUTHORING: No gaps permits no rows and a clear none statement. Coverage always retains every active clause/branch. Research basis records standalone or frozen-handoff reuse, decisive checks and any delta. Exclusions need authority. Source and dirty code revision are independent. -->
+<!-- AUTHORING: No gaps permits no rows and a clear none statement. Coverage retains every active clause/branch; no case-count quota. Rationale / proof limit records each case's Browser/Integration/DB/Security/Performance lane and non-browser proof seams. On authorized grouping refresh map old Case/Variant → new Case/Variant/Checkpoint or gap, obligation, disposition and reduction reason here; do not add an unregistered table. Target references may include TC-ID:variant:checkpoint for test-cases@1.2.0. Tiny UI/persistence checks may become checkpoints only if their obligations remain mapped. Keep permission/lifecycle/source/writer/output branches independently testable. Plan before/setup/result/after/export proof as needed; reviewed viewport images (full page only when necessary) remain inside the same TC in Testcases, with descriptive titles above images and one collapsed evidence group per TC. Configuration is not output proof; actual Excel/PDF file is required. Research basis records standalone or frozen-handoff reuse, decisive checks and delta. Exclusions need authority. Source/code identity, expected authority, readiness and execution remain independent. -->

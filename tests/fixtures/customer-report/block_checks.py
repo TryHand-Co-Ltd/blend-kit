@@ -34,15 +34,8 @@ def run(root):
                 text=re.sub(r'^(\| '+label+r' \| .*? \|)$',r'\1\n| screen_relative_path | /synthetic/preview |',text,flags=re.M)
                 case_path.write_text(text,encoding='utf-8')
             report=folder/'report.xlsx'
-            template=load_workbook(root/'skills/blend-generate-test-spec/assets'/model.REPORT_LAYOUTS[lang]['template'])
-            preview=template.worksheets[1]
-            assert '[TC-ID]' in preview['A5'].value
-            assert ('minh họa' in preview['A2'].value.lower()) if lang=='vi' else ('例' in preview['A2'].value)
-            assert preview.max_column==5 and preview.column_dimensions['B'].width<=24
-            assert not any('B6' in merged for merged in preview.merged_cells.ranges)
-            assert any('B6' in validation.sqref for validation in preview.data_validations.dataValidation)
             receipt=model.working.export(source,report,language=lang)
-            assert receipt['version']=='2.0.0'
+            assert receipt['version']=='2.4.0'
             data,_=model.prepare_report(source,lang)
             cards,inputs=blocks.layout(data)
             report_formulas=blocks.formulas(data,cards,inputs)
@@ -60,21 +53,11 @@ def run(root):
             assert '[TC-ID]' not in visible and '[テストケース名]' not in visible and 'không phải testcase thật' not in visible
             assert not model.markdown_leak(visible)
             assert not re.search(r'(?m)^•\s*[-+*•]\s+',visible)
-            for card in cards:
-                assert card['status_row']==card['start']+1
             tests=book.worksheets[1]
-            first_step=next(row for row,_,kind,_,_,_ in cards[0]['rows'] if kind=='step')
-            assert tests[f'A{first_step}'].font.bold and not tests[f'B{first_step}'].font.bold
-            assert tests[f'A{cards[0]["start"]}'].alignment.vertical=='center'
-            assert tests[f'A{cards[0]["status_row"]}'].font.bold
             for fields in inputs.values():
                 assert tests[fields['status']].value==model.REPORT_LAYOUTS[lang]['statuses']['NOT RUN']
                 assert tests[fields['actual']].value is None
-                status=tests[fields['status']]
-                assert status.coordinate.startswith('B') and not any(status.coordinate in merged for merged in tests.merged_cells.ranges)
-            assert tests.column_dimensions['B'].width <= 24
-            assert model.concise_lines('- `incomplete-excluded`: **preserve exact identifier**') == '• [incomplete-excluded]: preserve exact identifier'
-            assert model.display_sentence('không phải `**24`') == 'Không phải [**24]'
+                assert tests[fields['status']].coordinate.startswith('E')
             first=report.read_bytes()
             result=blocks.check(report,source,lang)
             assert result['states']=={'NOT RUN':len(data.rows)} and report.read_bytes()==first

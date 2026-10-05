@@ -14,7 +14,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from test_kit import SKILLS, mapping, validate_output_filename
+from test_kit import SKILLS, _gate, mapping, validate_output_filename
 
 
 def run(root: Path) -> list[str]:
@@ -25,47 +25,12 @@ def run(root: Path) -> list[str]:
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
     controls = json.loads((root / "tests/fixtures/package/inputs/controls.json").read_text())
-    assert builder.SKILLS == SKILLS == tuple(controls["skills"])
-    legacy = {p.relative_to(root / "dist").as_posix(): p.read_bytes()
-              for profile in controls["legacy_profiles"]
-              for p in (root / "dist" / profile).rglob("*") if p.is_file()}
-    assert len(legacy) == controls["legacy_file_count"]
-    assert hashlib.sha256(b"".join(relative.encode() + hashlib.sha256(data).digest()
-                                  for relative, data in sorted(legacy.items()))).hexdigest() == controls["legacy_sha256"]
-    previous_root = root / "dist/five-skill-candidate"
-    previous = {p.relative_to(previous_root).as_posix(): p.read_bytes()
-                for p in previous_root.rglob("*") if p.is_file()}
-    assert len(previous) == 564, "Historical five-skill candidate inventory changed"
-    sampled_root = root / "dist/ja-quality-candidate"
-    sampled = {p.relative_to(sampled_root).as_posix(): p.read_bytes()
-               for p in sampled_root.rglob("*") if p.is_file()}
-    assert len(sampled) == 597, "Previously sampled JA candidate inventory changed"
-    assert hashlib.sha256(b"".join(relative.encode() + hashlib.sha256(data).digest()
-                                  for relative, data in sorted(sampled.items()))).hexdigest() == "e87978912723258301b153b51cb24e22c55ba7a1dc5d2efc0eaa15487e2d7ff9"
-    previous_v2_root = root / "dist/ja-quality-candidate-v2"
-    previous_v2 = {p.relative_to(previous_v2_root).as_posix(): p.read_bytes()
-                   for p in previous_v2_root.rglob("*") if p.is_file()}
-    assert len(previous_v2) == 597, "Previous JA v2 inventory changed"
-    assert hashlib.sha256(b"".join(relative.encode() + hashlib.sha256(data).digest()
-                                  for relative, data in sorted(previous_v2.items()))).hexdigest() == "94c9e075f6db1841796c92d9a7e74d97b5e2c6a80c1268dd5e50eea260e2c41b"
-
-    previous_v3_root = root / "dist/ja-quality-candidate-v3"
-    previous_v3 = {p.relative_to(previous_v3_root).as_posix(): p.read_bytes()
-                   for p in previous_v3_root.rglob("*") if p.is_file()}
-    assert len(previous_v3) == 597
-    assert hashlib.sha256(b"".join(relative.encode() + hashlib.sha256(data).digest()
-                                  for relative, data in sorted(previous_v3.items()))).hexdigest() == "c4ed931762681ca4133de09350a1cfe2c13823803e8520ecdeefcf97c5f31e06"
-    historical_reports = {}
-    for candidate, expected_digest in (
-            ("customer-report-candidate", "483ab338905288a3bb4011d823814dc1992bfbe9ca614aa6c1df695aafb86b6c"),
-            ("customer-report-candidate-v2", "819f02a9ef6050b04126ae3a7d26c5f1af97d1a7e6c5c7b100e5a4550a776319")):
-        candidate_root = root / "dist" / candidate
-        inventory = {p.relative_to(candidate_root).as_posix(): p.read_bytes()
-                     for p in candidate_root.rglob("*") if p.is_file()}
-        assert len(inventory) == 642
-        assert hashlib.sha256(b"".join(relative.encode() + hashlib.sha256(data).digest()
-                                      for relative, data in sorted(inventory.items()))).hexdigest() == expected_digest
-        historical_reports[candidate] = inventory
+    assert builder.SKILLS == SKILLS
+    assert SKILLS[:-1] == tuple(controls["skills"]), "Historical five-skill controls changed"
+    assert SKILLS[-1] == "blend-automation-test"
+    current_resources = {f"{builder.REPORT_OWNER}/assets/test-report-block-template.{language}.xlsx":
+                         (root / builder.REPORT_OWNER / "assets" / f"test-report-block-template.{language}.xlsx").read_bytes()
+                         for language in ("ja", "vi")}
     assert builder.PRIVATE.search('host in ("localhost",)') is None
     for locator in ("http://localhost/private", "https://localhost/path", "localhost:3000"):
         assert builder.PRIVATE.search(locator), "Local locator passed package privacy check"
@@ -104,6 +69,19 @@ def run(root: Path) -> list[str]:
         if completed.returncode:
             raise AssertionError(f"Relocated CLI failed: {completed.stdout}{completed.stderr}")
         rows = builder.read_registry((source / "shared/artifact-formats.md").read_text(encoding="utf-8"))
+        for language in ("ja", "vi"):
+            current = mapping(rows, "test-cases", language)
+            assert current["Version"] == "1.3.0"
+            for version in ("1.0.0", "1.1.0", "1.2.0", "1.3.0"):
+                marker = f"<!-- blend-template: test-cases@{version} -->"
+                dispatched = _gate.source_mapping(marker, rows, "test-cases", language)
+                assert dispatched["Version"] == version
+                _gate.check_identity(marker, dispatched)
+            fenced = "```md\n<!-- blend-template: test-cases@1.1.0 -->\n```\n<!-- blend-template: test-cases@1.3.0 -->"
+            assert _gate.source_mapping(fenced, rows, "test-cases", language) == current
+            duplicate = "<!-- blend-template: test-cases@1.1.0 -->\n<!-- blend-template: test-cases@1.3.0 -->"
+            rejected(lambda: _gate.check_identity(duplicate, _gate.source_mapping(duplicate, rows, "test-cases", language)),
+                     "duplicate source identity dispatch")
         assert {(row["Output type"], row["Language"]) for row in rows} == {
             (row["Output type"], row["Language"]) for row in builder.read_registry(
                 (root / "shared/artifact-formats.md").read_text(encoding="utf-8"))}
@@ -166,6 +144,13 @@ def run(root: Path) -> list[str]:
         design = base / "synthetic design input"
         shutil.copytree(root / "tests/fixtures/test-spec/inputs/valid", design)
         design_before = {p.name: p.read_bytes() for p in design.iterdir() if p.is_file()}
+        scenario_designs = {}
+        for fixture, version in (("scenario-grouping", "2.4.0"), ("compact-scenario", "2.4.0")):
+            relocated_design = base / fixture
+            shutil.copytree(root / "tests/fixtures/test-spec/inputs" / fixture, relocated_design)
+            scenario_designs[fixture] = (relocated_design, version)
+        scenario_before = {p: p.read_bytes() for directory, _ in scenario_designs.values()
+                           for p in directory.glob("*.md")}
         all_files = {p.relative_to(output).as_posix(): p.read_bytes() for p in output.rglob("*") if p.is_file()}
         for name in builder.SKILLS:
             skill_sets = []
@@ -175,8 +160,9 @@ def run(root: Path) -> list[str]:
                 skill_sets.append(resources)
                 assert [p.name for p in emitted.rglob("SKILL.md")] == ["SKILL.md"]
                 builder.frontmatter(resources["SKILL.md"], name)
-                for common in ("workflow.md", "review-policy.md", "bug-hunter.md"):
+                for common in ("workflow.md", "review-policy.md", "bug-hunter.md", "automation-testing.md"):
                     assert resources["_kit/shared/" + common] == builder.normalize((source / "shared" / common).read_bytes())
+                assert not any(part.startswith("legacy") or part == "customer" for relative in resources for part in Path(relative).parts)
                 license_bytes = (source / "shared/bug-hunter-LICENSE.txt").read_bytes()
                 assert resources["_kit/shared/bug-hunter-LICENSE.txt"] == license_bytes
                 assert resources["_kit/shared/scripts/artifact_gate.py"] == source_gate.read_bytes()
@@ -186,8 +172,9 @@ def run(root: Path) -> list[str]:
                     assert resources["references/bug-hunter-LICENSE.txt"] == license_bytes
                     assert b"compatibility pointer" in resources["references/bug-hunter.md"]
                 if name == "blend-generate-test-spec":
-                    for helper in ("report_model.py", "block_report.py", "render_report.py", "export_report.py", "check_report.py"):
+                    for helper in builder.REPORT_RUNTIME_SCRIPTS:
                         assert resources["scripts/" + helper] == (source / "skills" / name / "scripts" / helper).read_bytes()
+                    assert resources["scripts/run_artifacts.py"] == (source / builder.EVIDENCE_HELPER).read_bytes()
                     assert not any("customer_report" in relative or "customer-report.md" in relative
                                    for relative in resources)
                     active_assets = {Path(relative).name for relative in resources if relative.endswith(".xlsx")}
@@ -223,6 +210,88 @@ def run(root: Path) -> list[str]:
                         final_book = load_workbook(report)
                         assert final_book.sheetnames[:2] == list(builder.report_layouts(source)[language]["sheets"][:2])
                         final_book.close()
+                    # Exercise new compact and unchanged 1.2 designs from emitted
+                    # runtime, away from the source checkout, on every profile/language.
+                    for fixture, (scenario_design, report_version) in scenario_designs.items():
+                        for language in ("ja", "vi"):
+                            report = base / f"{profile}-{fixture}.{language}.xlsx"
+                            result = subprocess.run([sys.executable, str(emitted / "scripts/export_report.py"),
+                                "--source-dir", str(scenario_design), "--output", str(report), "--language", language],
+                                cwd=base, capture_output=True, text=True, encoding="utf-8", env=environment)
+                            assert result.returncode == 0, result.stderr
+                            assert json.loads(result.stdout)["family"] == "test-report"
+                            before = report.read_bytes()
+                            result = subprocess.run([sys.executable, str(emitted / "scripts/check_report.py"),
+                                "--report", str(report), "--source-dir", str(scenario_design),
+                                "--language", language, "--phase", "in-progress"],
+                                cwd=base, capture_output=True, text=True, encoding="utf-8", env=environment)
+                            assert result.returncode == 0, result.stderr
+                            book = load_workbook(report)
+                            assert book.custom_doc_props["TemplateVersion"].value == report_version
+                            assert len(book.sheetnames) == 2
+                            book.close()
+                            assert report.read_bytes() == before, "Scenario checker changed report bytes"
+                if name == "blend-automation-test":
+                    dependency = emitted / "_kit" / builder.REPORT_OWNER
+                    for helper in builder.REPORT_RUNTIME_SCRIPTS:
+                        assert resources[f"_kit/{builder.REPORT_OWNER}/scripts/{helper}"] == (source / builder.REPORT_OWNER / "scripts" / helper).read_bytes()
+                    assert (dependency / "scripts/run_artifacts.py").read_bytes() == (source / builder.EVIDENCE_HELPER).read_bytes()
+                    assert (dependency / "requirements.txt").read_bytes() == (source / builder.REPORT_OWNER / "requirements.txt").read_bytes()
+                    # Execute the relocated writer import/CLI outside the source
+                    # tree; help alone would not resolve the evidence validator.
+                    result = subprocess.run([sys.executable, "-c",
+                        "import sys; sys.path.insert(0, sys.argv[1]); import update_report; update_report._validator(); print('validator resolved')",
+                        str(dependency / "scripts")], cwd=base, capture_output=True, text=True,
+                        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+                    assert result.returncode == 0, result.stderr
+                    assert result.stdout.strip() == "validator resolved"
+                    result = subprocess.run([sys.executable, str(dependency / "scripts/update_report.py"), "--help"],
+                                            cwd=base, capture_output=True, text=True,
+                                            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+                    assert result.returncode == 0, result.stderr
+                    saved_report = base / f"{profile}-test-report.vi.xlsx"
+                    saved_bytes = saved_report.read_bytes()
+                    result = subprocess.run([sys.executable, str(dependency / "scripts/update_report.py"),
+                        "--source-dir", str(design), "--report", str(saved_report), "--language", "vi",
+                        "--feature-id", "SYN-PACKAGE", "--bindings"], cwd=base,
+                        capture_output=True, text=True, encoding="utf-8",
+                        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"})
+                    assert result.returncode == 0, result.stderr
+                    binding = json.loads(result.stdout)
+                    assert binding["feature_id"] == "SYN-PACKAGE" and binding["schema_version"] == "2.4.0"
+                    assert binding["variants"] and saved_report.read_bytes() == saved_bytes
+                    for fixture, (scenario_design, report_version) in scenario_designs.items():
+                        for language in ("ja", "vi"):
+                            saved_report = base / f"{profile}-{fixture}.{language}.xlsx"
+                            arguments = [sys.executable, str(dependency / "scripts/update_report.py"),
+                                "--source-dir", str(scenario_design), "--report", str(saved_report), "--language", language]
+                            saved_bytes = saved_report.read_bytes()
+                            result = subprocess.run([*arguments, "--bindings"], cwd=base,
+                                capture_output=True, text=True, encoding="utf-8", env=environment)
+                            assert result.returncode == 0, result.stderr
+                            binding = json.loads(result.stdout)
+                            assert binding["schema_version"] == report_version and binding["feature_id"] == "SYN-SC"
+                            assert len(binding["variants"]) == 9 and saved_report.read_bytes() == saved_bytes
+                            fields = binding["variants"]["TC-SC-01 / lt"]
+                            actual = "\n".join(f"{checkpoint}: Synthetic failure observation; no live application proof."
+                                               for checkpoint in fields["checkpoints"])
+                            payload = {"identity": {"design_revision": binding["design_revision"],
+                                "feature_id": "SYN-SC", "case_id": "TC-SC-01", "variant_id": "lt", "run_id": "2026-10-05-001"},
+                                "status": "FAIL", "actual": actual}
+                            result = subprocess.run(arguments, input=json.dumps(payload), cwd=base,
+                                capture_output=True, text=True, encoding="utf-8", env=environment)
+                            assert result.returncode == 0, result.stderr
+                            book = load_workbook(saved_report)
+                            sheet = book[binding["sheet"]]
+                            assert sheet[fields["actual_cell"]].value == actual
+                            assert sheet[fields["status_cell"]].value == ("Không đạt" if language == "vi" else "不合格")
+                            for identity, other in binding["variants"].items():
+                                if identity != "TC-SC-01 / lt":
+                                    assert sheet[other["actual_cell"]].value is None
+                                    assert sheet[other["status_cell"]].value == ("Chưa thực hiện" if language == "vi" else "未実行")
+                            if report_version == "2.4.0":
+                                assert fields["actual_cell"].startswith("D") and fields["status_cell"].startswith("E")
+                            book.close()
                 runtime_registry = builder.read_registry(resources["_kit/shared/artifact-formats.md"].decode())
                 for source_row, runtime_row in zip(rows, runtime_registry):
                     assert runtime_row["Template"] == "_kit/" + source_row["Template"]
@@ -238,6 +307,7 @@ def run(root: Path) -> list[str]:
         assert before_capture == {p.relative_to(saved).as_posix(): p.read_bytes() for p in saved.rglob("*") if p.is_file()}
         assert owner_file.read_bytes() == owner_bytes
         assert design_before == {p.name: p.read_bytes() for p in design.iterdir() if p.is_file()}
+        assert scenario_before == {p: p.read_bytes() for p in scenario_before}, "Frozen scenario inputs changed"
         assert len(list(base.glob("*-test-report.*.xlsx"))) == 6, "Checking created a second report"
         # Inline-only drift, extended labels and a missing template fail at the shipped entrypoint.
         final_plan.write_text(plan.replace("情報源リビジョン: Scoped synthetic basis; no approval/runtime claim",
@@ -297,6 +367,8 @@ def run(root: Path) -> list[str]:
                          "skills/blend-generate-test-spec/scripts/block_report.py",
                          "skills/blend-generate-test-spec/scripts/report_model.py",
                          "skills/blend-generate-test-spec/scripts/check_report.py",
+                         "skills/blend-generate-test-spec/scripts/update_report.py",
+                         "skills/blend-automation-test/scripts/run_artifacts.py",
                          "skills/blend-generate-test-spec/assets/test-report-block-template.ja.xlsx",
                          "skills/blend-generate-test-spec/requirements.txt"):
             missing_resource = source / relative
@@ -309,31 +381,18 @@ def run(root: Path) -> list[str]:
         missing.unlink()
         rejected(lambda: builder.build(source, base / "missing license", ["claude"]), "broken dependency closure")
 
-    assert legacy == {p.relative_to(root / "dist").as_posix(): p.read_bytes()
-                      for profile in controls["legacy_profiles"]
-                      for p in (root / "dist" / profile).rglob("*") if p.is_file()}
-    assert previous == {p.relative_to(previous_root).as_posix(): p.read_bytes()
-                        for p in previous_root.rglob("*") if p.is_file()}
-    assert sampled == {p.relative_to(sampled_root).as_posix(): p.read_bytes()
-                       for p in sampled_root.rglob("*") if p.is_file()}
-    assert previous_v2 == {p.relative_to(previous_v2_root).as_posix(): p.read_bytes()
-                           for p in previous_v2_root.rglob("*") if p.is_file()}
-    assert previous_v3 == {p.relative_to(previous_v3_root).as_posix(): p.read_bytes()
-                           for p in previous_v3_root.rglob("*") if p.is_file()}
-    for candidate, inventory in historical_reports.items():
-        candidate_root = root / "dist" / candidate
-        assert inventory == {p.relative_to(candidate_root).as_posix(): p.read_bytes()
-                             for p in candidate_root.rglob("*") if p.is_file()}
+    assert current_resources == {relative: (root / relative).read_bytes() for relative in current_resources}, "Package checks changed current assets"
     return ["one active report family/JA-VI assets; actual relocated UTF-8 generation and same-file read-only checks across all three profiles under cp1252; overwrite and missing completion attestations rejected",
-            "historical JA v3 and both customer-report candidates preserve fixed inventories/digests; Office owner files excluded and untouched",
-            "five skills on three profiles build from relocated/spaced roots at another cwd without a test harness or a parent checkout",
-            "all emitted resources/local links and rewritten registry paths resolve without source fallback",
+            "canonical current workbook resources preserve bytes; Office owner files excluded and untouched",
+            "six skills on three profiles build from relocated/spaced roots at another cwd without a test harness or a parent checkout; frozen five-skill controls retained",
+            "all emitted resources/local links and rewritten registry paths resolve without source fallback; source1.0/1.1/1.2 legacy and current1.3 dispatch reject duplicate/fenced identity spoofing",
             f"all {len(rows)} registered template bytes, SKILL descriptions/bodies and resource inventories match across profiles",
-            "source and all 15 shipped helpers check JA Markdown and capture explicitly selected raw bytes from another cwd; no manifest/source fallback",
+            "source and all 18 shipped gates check JA Markdown and capture explicitly selected raw bytes from another cwd; automation writer resolves bundled evidence validator without sibling installation",
+            "JA/VI source1.2/1.3 both generate only report2.4 export/check/bind/write through relocated canonical runtimes on all profiles; synthetic FAIL preserves eight untouched NOT RUN variants and frozen sources",
             "deployed inline/presentation/missing-asset drift and traversal captures remain Draft/Blocked",
             "topic/plan/code-review filename shapes accept multiple descriptive and exact-ID-prefixed names, reject literal/traversal/legacy output names",
             "one canonical behavioral protocol/common policy and exact license bytes bundled; legacy artifact pointers resolve",
             "private snapshots/configs/tests excluded; collision/rebuild preserves existing output",
-            "historical 297-file dist3ef, 564-file five-skill-candidate, sampled 597-file JA e879 and 597-file v2 inventories and bytes preserved",
+            "current JA/VI report2.4 assets remain byte-identical; no legacy/customer copies are bundled",
             "invalid mapping/version/bilingual pair/name/private path/missing license rejected",
             "package checks do not prove installation, runtime discovery or actual agent semantic parity"]

@@ -12,11 +12,12 @@ from urllib.parse import parse_qsl, unquote, urlsplit
 
 import export_report as working
 
-VERSION = "2.0.0"
+VERSION = "2.4.0"
+CUSTOMER_VERSION = VERSION  # Compatibility name for callers; one workbook format.
 REPORT_LAYOUTS = {
     "vi": {
         "template": "test-report-block-template.vi.xlsx",
-        "sheets": ("Tổng quan", "Testcases"),
+        "sheets": ("Tổng quan", "Kiểm thử"),
         "title": "Báo cáo kiểm thử",
         "block_title": "Kiểm thử chi tiết",
         "headers": (),
@@ -225,8 +226,18 @@ for _language, _locale in REPORT_LAYOUTS.items():
          'Biến thể không thực hiện', 'Biến thể chưa thực hiện', 'TC đã đánh giá',
          'Tỷ lệ PASS theo TC', 'Tiến độ theo TC', 'TC chưa PASS', 'Trạng thái biến thể không hợp lệ')
         if _language == 'vi' else
-        ('ケース数', 'バリエーション数', '対象条件を満たす合格判定数', '対象条件を満たす不合格判定数', '実行不可数', '実行省略数', '未実行数',
-         '対象条件を満たす合否判定数', '合格数 / 対象条件を満たす合否判定数', '対象条件を満たす合否判定数 / 全バリエーション数', '合格未確認数', '無効な状態数')))
+          ('ケース数', 'バリエーション数', '対象条件を満たす合格判定数', '対象条件を満たす不合格判定数', '実行不可数', '実行省略数', '未実行数',
+           '対象条件を満たす合否判定数', '合格数 / 対象条件を満たす合否判定数', '対象条件を満たす合否判定数 / 全バリエーション数', '合格未確認数', '無効な状態数')))
+
+# 2.2 counts judgments by TC; raw execution states remain variant counts.
+COMPACT_JA_METRIC_LABELS = {
+    'PASS':'対象条件を満たす合格ケース数', 'FAIL':'対象条件を満たす不合格ケース数',
+    'BLOCKED':'実行不可バリエーション数', 'SKIPPED':'実行省略バリエーション数',
+    'NOT RUN':'未実行バリエーション数', 'evaluated':'対象条件を満たす合否判定ケース数',
+    'pass_rate':'合格ケース数 / 対象条件を満たす合否判定ケース数',
+    'completion_rate':'対象条件を満たす合否判定ケース数 / 全ケース数',
+    'outstanding':'合格未確認ケース数', 'invalid':'無効なバリエーション状態数',
+}
 
 
 @dataclass(frozen=True)
@@ -252,6 +263,8 @@ class ReportData:
     summary: dict[str, str]
     rows: tuple[ReportRow, ...]
     cases: tuple[dict, ...] = ()
+    report_version: str = VERSION
+    feature_id: str = ''
 
     def __post_init__(self):
         case_ids = {row.case_id for row in self.rows}
@@ -259,6 +272,13 @@ class ReportData:
             raise ValueError('Case IDs collide under Excel case-insensitive matching')
         if len({row.identity.casefold() for row in self.rows}) != len(self.rows):
             raise ValueError('Projected variant identities collide under Excel case-insensitive matching')
+
+
+def template_path(data: ReportData) -> Path:
+    assets = Path(__file__).resolve().parents[1] / 'assets'
+    if data.report_version != VERSION:
+        raise ValueError('Only test-report@2.4.0 is supported; old workbooks are preserved')
+    return assets / REPORT_LAYOUTS[data.language]['template']
 
 
 # Unicode White_Space accepted by Python str.strip; CLEAN handles the ASCII
@@ -273,71 +293,13 @@ def _excel_without_whitespace(expression):
     return value
 
 
-def recorded_decision_inputs(actual: str, evidence: str) -> bool:
-    """Recorded count minimum; URL privacy and recipient access remain separate checks."""
-    first = evidence.split('\n', 1)[0]
-    if not actual.strip() or not first.startswith('https://') or any(ch.isspace() or ord(ch) < 32 for ch in first):
-        return False
-    authority = re.split(r'[/\?#]', first[8:], maxsplit=1)[0]
-    return '@' not in authority and re.search(r'.+\..+', authority) is not None
 
 
-def summary_formulas(data: ReportData) -> dict[str, str]:
-    """Only visible input rows drive counts; identity selectors survive row sorting."""
-    locale = REPORT_LAYOUTS[data.language]
-    sheet = "'" + locale["sheets"][1] + "'!"
-    start, end = locale["start_row"], max(locale["start_row"], locale["start_row"] + len(data.rows) - 1)
-    ranges = {col: f"{sheet}${col}${start}:${col}${end}" for col in "AEFG"}
-    statuses = locale["statuses"]
-    def count(token, rows=None, judged=False):
-        selected = data.rows if rows is None else rows
-        if judged:
-            selected = [row for row in selected if row.eligible]
-        if not selected:
-            return '0'
-        # A one-ID mask is Boolean, unlike an addition of masks; SUMPRODUCT
-        # requires explicit numeric coercion in both cases.
-        mask = '--(' + '+'.join(f'({ranges["A"]}="{row.identity}")' for row in selected) + ')'
-        terms = ([] if rows is None and not judged else [mask]) + [f'--EXACT({ranges["F"]},"{statuses[token]}")']
-        if judged:
-            first = f'LEFT({ranges["G"]},FIND(CHAR(10),{ranges["G"]}&CHAR(10))-1)'
-            # Query/fragment delimiters also terminate the authority. Padding
-            # makes FIND(start=9) safe for empty/not-yet-entered evidence cells.
-            separated = f'SUBSTITUTE(SUBSTITUTE({first},"?","/"),"#","/")'
-            host = f'MID({separated},9,FIND("/",{separated}&"/////////",9)-9)'
-            terms += [f'--(LEN({_excel_without_whitespace(ranges["E"])})>0)',
-                      f'--EXACT(LEFT({first},8),"https://")',
-                      f'--(LEN({_excel_without_whitespace(first)})=LEN({first}))',
-                      f'--ISNUMBER(SEARCH("?*.?*",{host}))', f'--ISERROR(SEARCH("@",{host}))']
-        return 'SUMPRODUCT(' + ','.join(terms) + ')'
-    formulas = {"B17": f"=COUNTA({ranges['A']})"}
-    for token in statuses:
-        formulas[f"B{METRIC_ROWS[token]}"] = '=' + count(token, judged=token in ('PASS', 'FAIL'))
-    formulas.update(B16=f'=COUNTA(A{CASE_START_ROW}:A{max(CASE_START_ROW, CASE_START_ROW + len(set(r.case_id for r in data.rows)) - 1)})',
-                    B23="=B18+B19", B24=f'=IF(B23=0,"{locale["no_data"]}",B18/B23)',
-                    B25=f'=IF(B17=0,"{locale["no_data"]}",B23/B17)',
-                    B26="=B17-B18", B27=f'=B17-SUM({",".join(count(t) for t in statuses)})')
-    for index, case_id in enumerate(dict.fromkeys(r.case_id for r in data.rows), CASE_START_ROW):
-        rows = [r for r in data.rows if r.case_id == case_id]
-        passing, failing = count('PASS', rows, True), count('FAIL', rows, True)
-        skipped, blocked, unrun = count('SKIPPED', rows), count('BLOCKED', rows), count('NOT RUN', rows)
-        formulas[f"B{index}"] = (f'=IF({failing}>0,"{statuses["FAIL"]}",'
-            f'IF({passing}={len(rows)},"{statuses["PASS"]}",IF({skipped}={len(rows)},"{statuses["SKIPPED"]}",'
-            f'IF({blocked}>0,"{statuses["BLOCKED"]}",IF({unrun}={len(rows)},"{statuses["NOT RUN"]}","{locale["case_pending"]}")))))')
-    if any(len(value) > 8192 for value in formulas.values()):
-        raise ValueError("Report exceeds Excel formula length; split the requested run scope explicitly")
-    return formulas
 
 
-def detail_backlink_formula(identity: str, data: ReportData) -> str:
-    locale = REPORT_LAYOUTS[data.language]
-    sheet = "'" + locale['sheets'][1] + "'"
-    start = locale['start_row']
-    end = max(start, start + len(data.rows) - 1)
-    return f'=HYPERLINK("#{sheet}!A"&(MATCH("{identity}",{sheet}!$A${start}:$A${end},0)+{start - 1}),"{identity}")'
 
 
-def prepare_report(source: Path, language="vi"):
+def prepare_report(source: Path, language="vi", *, customer=True, customer_version=None):
     if language not in REPORT_LAYOUTS:
         raise ValueError("Unsupported language; choose ja or vi")
     paths = [source / f"{family}.{language}.md" for family in working.HEADINGS[language]]
@@ -353,12 +315,183 @@ def prepare_report(source: Path, language="vi"):
     if len(paths) == 6:
         companion = working.parse_sources(source, other, captured=captured)
         def identities(item):
-            return (item['revision'], [(c['id'], [v[0] for v in c['variants']], c['priority'], c['basis'], c['readiness'], c['gap'], c.get('screen_relative_path','unknown'),
+            return (item['revision'], item['source_version'], item['conventions'].get('Feature ID'), [(c['id'], [v[0] for v in c['variants']], c['priority'], c['basis'], c['readiness'], c['gap'], c.get('screen_relative_path','unknown'),
+                c.get('execution_lane'), [(cp[0],cp[1],cp[2],cp[3],cp[6]) for cp in c.get('checkpoints',())],
                 'local:' if c['fixture'].startswith('local: ') else c['fixture']) for c in item['cases']],
                 [f['id'] for f in item['fixtures']], [(g[0], g[1]) for g in item['gaps']], [r[2] for r in item['coverage']])
         if identities(design) != identities(companion):
             raise ValueError("JA/VI identity/state parity mismatch")
-    return project_report(design, language), captures
+    data = project_report(design, language)
+    if customer_version not in (None, VERSION):
+        raise ValueError('Only test-report@2.4.0 is supported; old workbooks are preserved')
+    return customer_report(data, design), captures
+
+
+def prepare_saved_report(source, report, language='vi'):
+    """Choose presentation from captured workbook provenance, not its filename."""
+    from zipfile import ZipFile
+    import io
+    import xml.etree.ElementTree as ET
+    report = Path(report)
+    capture = _capture(report)
+    with ZipFile(io.BytesIO(capture[0])) as archive:
+        if 'docProps/custom.xml' not in archive.namelist():
+            raise ValueError('Unsupported saved report provenance; only test-report@2.4.0 is supported. Original workbook preserved')
+        properties = ET.fromstring(archive.read('docProps/custom.xml'))
+        version = next((''.join(p.itertext()) for p in properties if p.get('name') == 'TemplateVersion'), '')
+    if version != VERSION:
+        raise ValueError('Unsupported saved report version '+repr(version)+'; only test-report@2.4.0 is supported. Original workbook preserved')
+    data, captures = prepare_report(Path(source), language)
+    captures[report] = capture
+    return data, captures
+
+
+def customer_report(data, design):
+    """A reader projection, preserving legacy assertions and execution identities."""
+    from dataclasses import replace
+    vi = data.language == 'vi'
+    raw_cases = {case['id']: case for case in design['cases']}
+    cards = []
+    for original in data.cases:
+        card = dict(original)
+        source = raw_cases[card['id']]
+        card['priority'] = source['priority']
+        card['customer_legacy'] = design['source_version'] not in ('1.2.0', '1.3.0')
+        card['technical_items'] = list(card.get('technical_items', card['preparation_items']))
+        card['technical_items'] += [
+            ('Căn cứ' if vi else '根拠', source['source']),
+            ('Bằng chứng' if vi else '証拠', source['proof']),
+            ('Bảo toàn' if vi else '維持状態', source['preservation']),
+            ('Reset' if vi else 'リセット', source['reset']),
+        ]
+        card['preparation_items'] = [(label, value) for label, value in card['preparation_items']
+            if label in ('Cấu hình', '設定', 'Vai trò / quyền', '役割・権限', 'Dữ liệu test', 'テストデータ', 'Blocker', '未完了事項')]
+        if vi and card['customer_legacy']:
+            card['preparation_items'] = [(label, value) for label, value in card['preparation_items']
+                if not (label == 'Vai trò / quyền' and value.startswith('• Dùng actor/quyền được nêu trong điều kiện;'))]
+            generic_reset = 'Trước mỗi biến thể, dựng lại điều kiện/dữ liệu đầu của case bằng đường được phép; giữ các reset/fixture độc lập đã nêu trong thủ tục.'
+            if source['reset'] == generic_reset:
+                card['action_items'] = [item for item in card['action_items'] if item['label'] != 'Reset']
+        if vi:
+            card['preparation_items'] = [('Cần xác minh' if label=='Blocker' else label,
+                re.sub(r'G-[A-Za-z0-9_.-]+:\s*', '', value) if label=='Blocker' else value)
+                for label,value in card['preparation_items']]
+            card['action_items'] = [{**item, 'label': item['label'].replace('Step ', 'Bước ', 1)} for item in card['action_items']]
+        if not card['customer_legacy']:
+            overall = source['expected']
+            if overall == '@Checkpoints':
+                overall = '\n'.join(cp[0]+' · '+cp[1]+': '+cp[4] for cp in source['checkpoints'])
+            card['expected_items'] = [('Kỳ vọng chung' if vi else '共通の期待結果', display_sentence(overall))]
+            if design['source_version'] == '1.2.0':
+                card['variants'] = {name: {**branch, 'expected': '\n'.join(
+                    cp['id']+': '+cp['expected'] for cp in branch['checkpoints'])}
+                    for name, branch in card['variants'].items()}
+        else:
+            overall = source['expected']
+            if overall == '@Steps':
+                overall = '\n'.join(expected+'\n'+preserved for _, _, expected, preserved in source['steps'])
+            card['expected_items'] = [('Kết quả mong đợi' if vi else '期待結果', display_sentence(overall))]
+            card['variants'] = {variant: {'inputs': value[0], 'action_delta': 'none',
+                'expected': ('Như kỳ vọng chung ở trên' if vi else '上記の共通期待結果と同じ')
+                    if value[1] == source['expected'] else value[1], 'checkpoints': []}
+                for variant, value in card['variants'].items()}
+        # Readiness/authority cannot disappear behind a collapsed technical group.
+        if source['basis'] != 'Confirmed' or source['readiness'] != 'Ready':
+            notice = ('Kết quả ghi nhận chưa đủ điều kiện nghiệm thu: kỳ vọng hoặc chuẩn bị chưa được xác nhận.'
+                if vi else '期待結果または準備が未確定のため、記録結果は受入判定を意味しません。')
+            card['preparation_items'].append(('Lưu ý' if vi else '注意', notice))
+        cards.append(card)
+    summary = dict(data.summary)
+    if vi:
+        summary['limitations'] = summary['limitations'].replace('Báo cáo mới chưa thực thi.',
+            'Kết quả ghi nhận và điều kiện nghiệm thu được đánh giá riêng.')
+        summary['preparation'] = summary['preparation'].replace('Ready:', 'Sẵn sàng:').replace('Draft:', 'Chờ xác minh:').replace('Blocked:', 'Bị chặn:')
+    result = replace(data, summary=summary, cases=tuple(cards), report_version=VERSION)
+    return _readable_report(result, design)
+
+
+def report_locale(data):
+    locale = dict(REPORT_LAYOUTS[data.language])
+    return locale
+
+
+def variant_label(name, language, inputs=''):
+    labels = {'lt': ('Nhỏ hơn', 'より小さい'), 'le': ('Nhỏ hơn hoặc bằng', '以下'),
+        'cancel': ('Hủy xóa', '削除を取り消す'), 'delete': ('Đồng ý xóa', '削除を確定する'),
+        'base': ('Trường hợp cơ bản', '基本条件')}
+    if name.casefold() in labels:
+        return labels[name.casefold()][language == 'ja'] + ' (' + name + ')'
+    description = re.split(r'[\n;:]', inputs, maxsplit=1)[0].strip()
+    if description and len(description) <= 100 and not re.search(r'(^local:|\[dummy-input:|[A-Za-z_][A-Za-z0-9_]*=)', description):
+        return display_sentence(description) + ' (' + name + ')'
+    return ('Trường hợp' if language == 'vi' else '条件') + ' (' + name + ')'
+
+
+def _readable_report(data, design):
+    """Only execution context and concrete oracles enter the reader projection."""
+    from dataclasses import replace
+    vi = data.language == 'vi'
+    raw = {case['id']: case for case in design['cases']}
+    gaps = {gap[0]: gap for gap in design['gaps']}
+    generic_preservation = 'Giữ điểm, cấu hình và đối tượng không đích theo expected; chỉ thay phần thủ tục yêu cầu, không tự đổi oracle hoặc mở rộng phạm vi.'
+    cards = []
+    for original in data.cases:
+        card = dict(original)
+        source = raw[card['id']]
+        card['preparation_items'] = [(label, value) for label, value in card['preparation_items']
+            if label not in ('Execution lane', 'Metadata', 'Context refs','Lưu ý','注意','Cần xác minh','Blocker','未完了事項')]
+        if source['gap'] != 'none':
+            for name in source['gap'].split(', '):
+                if gaps[name][1] != 'preparation':
+                    card['preparation_items'].append(('Điều kiện còn thiếu' if vi else '未確定条件',concise_lines(gaps[name][3])))
+        card['preparation_items'] = list(dict.fromkeys(card['preparation_items']))
+        card['technical_items'] = []
+        card['expected_items'] = []
+        branches = {}
+        for name, branch in card['variants'].items():
+            expected = branch['expected']
+            if design['source_version'] == '1.2.0':
+                expected = '\n'.join(cp['expected'] for cp in branch['checkpoints'])
+            if card['customer_legacy']:
+                variant = next(value for value in source['variants'] if value[0] == name)
+                expected = variant[2]
+                if expected in ('@Steps', source['expected']):
+                    expected = source['expected']
+                if expected == '@Steps':
+                    expected = '\n'.join(value+'\n'+preserve for _, _, value, preserve in source['steps'])
+                if source['preservation'] and source['preservation'] != generic_preservation and source['preservation'] not in expected:
+                    expected += '\n' + source['preservation']
+            inputs, action = branch['inputs'], branch['action_delta']
+            if 'Thao tác riêng: ' in inputs:
+                inputs, action = inputs.split('Thao tác riêng: ',1)
+                inputs = inputs.rstrip(' ;\n')
+            if name.casefold() == 'base' and inputs.strip() == 'Kiểm tra toàn bộ tình huống: Toàn bộ thủ tục theo đúng thứ tự; các đối chứng cùng fixture được kiểm trong cùng lượt, không bỏ bước':
+                inputs = ''
+            branches[name] = {**branch, 'expected': display_sentence(expected), 'inputs':inputs,'action_delta':action,
+                'label': variant_label(name, data.language, inputs)}
+        if all('Thao tác riêng: ' in branch['inputs'] for branch in card['variants'].values()):
+            card['action_items'] = []
+        card['variants'] = branches
+        cards.append(card)
+    summary = dict(data.summary)
+    summary['preparation'] = ''
+    labels = working.SCOPE_LABELS[data.language]
+    summary['scope'] = display_markup(public_text(design['scope'][1][labels[1][0]],'scope'))
+    limits = design['scope'][0][labels[0][5]]
+    if limits.startswith('Báo cáo mới chưa thực thi.'):
+        limits = ''
+    pending = sum(not row.eligible for row in data.rows)
+    notice = (f'{pending} trường hợp chưa đủ điều kiện kết luận nghiệm thu. Chỉ kết luận nghiệm thu khi đã làm rõ điều kiện và có đủ bằng chứng theo testcase.' if vi else
+        f'{pending}条件は受入判定の条件が未確定です。期待結果・実行条件を確定し、十分な証拠を確認してから受入判定を行ってください。') if pending else ''
+    summary['limitations'] = '\n'.join(value for value in (limits,notice) if value)
+    return replace(data, cases=tuple(cards), summary=summary)
+
+
+def descriptive_image_title(value):
+    """Office's default object description is not an evidence title."""
+    value = str(value or '').strip()
+    token = re.sub(r'[\s\d_-]+', '', value).casefold()
+    return bool(value) and token not in ('picture','image','screenshot','photo','ảnh','hìnhảnh','画像','スクリーンショット','図')
 
 
 def excerpt(value, limit=140):
@@ -452,6 +585,30 @@ def project_report(design, language):
     gap_records = {gap[0]: gap for gap in design['gaps']}
     rows, cards = [], []
     for case in design['cases']:
+        if design.get('source_version') in ('1.2.0', '1.3.0'):
+            card, records = _scenario_projection(case, design, language, fixtures, gap_records)
+            if design['source_version'] == '1.3.0':
+                card['priority'] = case['priority']
+                card['technical_items'] = card['preparation_items'] + [
+                    ('Metadata', '\n'.join(key+': '+str(case[key]) for key in
+                        ('group','source','priority','basis','readiness','execution_lane','gap',
+                         'configuration','trigger','observation','actor','fixture','expected','proof','preservation') if key in case))]
+                card['context_refs'] = case.get('context_refs',{})
+                card['contexts'] = {name:design['contexts'][name] for name in
+                    dict.fromkeys(value[1:] for value in card['context_refs'].values())}
+                if card['context_refs']:
+                    card['technical_items'].append(('Context refs', '\n'.join(key+': '+value for key,value in card['context_refs'].items())))
+                    card['technical_items'].extend((name,'\n'.join(key+': '+value for key,value in values.items())) for name,values in card['contexts'].items())
+                card['preparation_items'] = [(label, value) for label,value in card['preparation_items']
+                    if label in ('Cấu hình','設定','Vai trò / quyền','役割・権限')]
+                card['expected_items'] = [('Expected', display_sentence(public_text(case['expected'],'overall expected')))]
+                for variant in case['variants']:
+                    card['variants'][variant[0]]['expected'] = display_sentence(public_text(variant[3],'variant final expected'))
+                records = [ReportRow(r.case_id,r.variant,r.screen_function,r.conditions,
+                    card['variants'][r.variant]['expected'],r.eligible) for r in records]
+            cards.append(card)
+            rows.extend(records)
+            continue
         common_inputs = case['fixture'][7:] if case['fixture'].startswith('local: ') else '\n'.join(
             '\n'.join(f'{label}: {value}' for label,value in zip(working.FIXTURE_LABELS[language],fixtures[name]))
             for name in case['fixture'].split(', '))
@@ -576,4 +733,49 @@ def project_report(design, language):
     if missing:
         summary['limitations'] += '\n' + (f'{missing} testcase chưa có URL màn hình tương đối được xác minh.' if language=='vi' else f'{missing}ケースの画面相対URLが未確認です。')
     summary = {key: display_markup(value) for key, value in summary.items()}
-    return ReportData(language, summary, tuple(rows), tuple(cards))
+    return ReportData(language, summary, tuple(rows), tuple(cards),
+        VERSION,
+        design['conventions'].get('Feature ID', ''))
+
+
+def _scenario_projection(case, design, language, fixtures, gaps):
+    """Shared procedure once, concrete branch oracles only at their checkpoints."""
+    vi = language == 'vi'
+    common = case['fixture'][7:] if case['fixture'].startswith('local: ') else '\n'.join(
+        '\n'.join(f'{label}: {value}' for label,value in zip(working.FIXTURE_LABELS[language],fixtures[name]))
+        for name in case['fixture'].split(', '))
+    fixture_label='Dữ liệu test' if vi else 'テストデータ'
+    fixture_items=([(fixture_label,concise_lines(common,dummy_input=True))] if case['fixture'].startswith('local: ') else
+        [(fixture_label+' · '+name,concise_lines('\n'.join(
+            f'{label}: {value}' for label,value in zip(working.FIXTURE_LABELS[language],fixtures[name])),dummy_input=True))
+         for name in case['fixture'].split(', ')])
+    preparation = [('Cấu hình' if vi else '設定', concise_lines(case['configuration'])),
+        ('Vai trò / quyền' if vi else '役割・権限', concise_lines(case['actor'])), *fixture_items,
+        ('Trigger' if vi else 'トリガー', concise_lines(case['trigger'])),
+        ('Execution lane', case['execution_lane'])]
+    if case['gap'] != 'none':
+        preparation.append(('Blocker' if vi else '未完了事項', concise_lines('\n'.join(gaps[g][3] for g in case['gap'].split(', ')))))
+    actions = [{'label':step_label(n,language),'value':display_sentence(public_text(a,'step action'))} for n,a,_,_ in case['steps']]
+    actions.append({'label':'Reset' if vi else 'リセット','value':display_sentence(public_text(case['reset'],'reset'))})
+    shared_expected = [(step_label(n,language),concise_lines(e)) for n,_,e,_ in case['steps'] if e and e != '@Checkpoints']
+    shared_expected += [(step_label(n,language)+' · '+('Giữ nguyên' if vi else '維持'),concise_lines(p)) for n,_,_,p in case['steps'] if p]
+    shared_expected += [('Giữ nguyên' if vi else '維持',concise_lines(case['preservation']))]
+    variants, records = {}, []
+    for variant, inputs, delta, _ in case['variants']:
+        cps = [{'id':cp,'step':step,'stage':stage,'expected':public_text(expected,'checkpoint expected'),
+            'focus':public_text(focus,'checkpoint focus'),'artifact':artifact}
+            for v,cp,step,stage,expected,focus,artifact in case['checkpoints'] if v == variant]
+        variants[variant] = {'inputs':public_text(inputs,'variant inputs',dummy_input=True),
+            'action_delta':public_text(delta,'variant action delta'),'checkpoints':cps}
+        expected = '\n'.join(cp['id']+': '+cp['expected'] for cp in cps)
+        condition = '\n'.join(label+': '+value for label,value in preparation)+'\n'+inputs+'\n'+delta
+        records.append(ReportRow(case['id'],variant,case['function'],condition,expected,
+            case['basis']=='Confirmed' and case['readiness']=='Ready'))
+    path = case.get('screen_relative_path','unknown')
+    screen_path(path,language)
+    card = {'id':case['id'],'title':display_markup(public_text(case['title'],'title')),
+        'function':display_markup(public_text(case['function'],'function')),'screen_relative_path':path,
+        'preparation_items':preparation,'action_items':actions,'expected_items':shared_expected,
+        'expected_source':case['expected'],'fixture_source':case['fixture'],'variants':variants,
+        'proof':public_text(case['proof'],'proof'),'reset':public_text(case['reset'],'reset')}
+    return card, records

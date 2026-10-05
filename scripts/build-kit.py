@@ -8,6 +8,7 @@ import argparse
 import ast
 import hashlib
 import os
+import posixpath
 import re
 import sys
 import urllib.parse
@@ -16,11 +17,13 @@ import zipfile
 from pathlib import Path
 
 SKILLS = ("blend-generate-task", "blend-generate-test-spec", "blend-review-artifacts",
-          "blend-plan-implementation", "blend-review-code")
+          "blend-plan-implementation", "blend-review-code", "blend-automation-test")
 PROFILES = {"codex": ".agents/skills", "cursor": ".cursor/skills", "claude": ".claude/skills"}
 RESOURCE_DIRS = ("assets", "references", "scripts")
 ALLOWED_SUFFIXES = {".md", ".txt", ".sql", ".xlsx", ".py"}
-REPORT_RUNTIME_SCRIPTS = ("report_model.py", "block_report.py", "render_report.py", "export_report.py", "check_report.py")
+REPORT_RUNTIME_SCRIPTS = ("report_model.py", "block_report.py", "render_report.py", "export_report.py", "check_report.py", "update_report.py")
+REPORT_OWNER = "skills/blend-generate-test-spec"
+EVIDENCE_HELPER = "skills/blend-automation-test/scripts/run_artifacts.py"
 FORBIDDEN_PARTS = {".git", ".codex", "node_modules", "__pycache__", "tests", "results", "plans"}
 LINKS = re.compile(r"\]\(([^)\n]+)\)")
 PRIVATE = re.compile(r"(?i)(?:\b[A-Z]:[\\/]|file://|(?:https?://localhost\b|\blocalhost:\d+\b)|127\.0\.0\.1|(?<![A-Za-z])(?:/Users/|/home/|/mnt/[a-z]/)|-----BEGIN [A-Z ]*PRIVATE KEY-----|\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,})")
@@ -94,7 +97,11 @@ def workbook_metadata(data: bytes, language: str, layout: dict) -> tuple[dict[st
         strings = []
         if "xl/sharedStrings.xml" in book.namelist():
             strings = ["".join(node.itertext()) for node in ET.fromstring(book.read("xl/sharedStrings.xml"))]
-        if metadata.get("Language") != language or sheets not in (list(layout["sheets"][:2]), list(layout["sheets"])):
+        # The current VI report uses localized detail-tab names.
+        expected_sheets = ("Tổng quan", "Kiểm thử") if (
+            metadata.get("TemplateVersion") == "2.4.0" and language == "vi"
+        ) else layout["sheets"]
+        if metadata.get("Language") != language or sheets not in (list(expected_sheets[:2]), list(expected_sheets)):
             raise ValueError("Report language/sheet schema mismatch")
         for index, key, anchor in ((2, "headers", "header_row"), (3, "detail_headers", "detail_header_row")):
             if index > len(sheets):
@@ -149,7 +156,7 @@ def report_layouts(source: Path) -> dict:
 
 def validate_template(data: bytes, row: dict[str, str], layouts: dict | None = None) -> None:
     if row["Template"].endswith(".xlsx"):
-        if row["Family"] != "test-report":
+        if row["Family"] != "test-report" or row["Version"] != "2.4.0":
             raise ValueError("Unsupported workbook family")
         if layouts is None:
             layouts = report_layouts(Path(__file__).resolve().parents[1])
@@ -249,12 +256,21 @@ def prepare_skill(source: Path, name: str, rows: list[dict[str, str]]) -> dict[s
     own = f"skills/{name}"
     selected = [f"{own}/SKILL.md", "shared/workflow.md", "shared/artifact-formats.md",
                 "shared/review-policy.md", "shared/bug-hunter.md", "shared/bug-hunter-LICENSE.txt",
-                "shared/scripts/artifact_gate.py"]
-    if name == "blend-generate-test-spec":
+                "shared/scripts/artifact_gate.py", "shared/automation-testing.md"]
+    if name in {"blend-generate-test-spec", "blend-automation-test"}:
         for filename in REPORT_RUNTIME_SCRIPTS:
-            relative = f"{own}/scripts/{filename}"
+            relative = f"{REPORT_OWNER}/scripts/{filename}"
             if not safe_path(source, relative).is_file():
                 raise ValueError(f"Missing Test Spec report runtime: {relative}")
+            selected.append(relative)
+        selected.append(f"{REPORT_OWNER}/requirements.txt")
+        helper = safe_path(source, EVIDENCE_HELPER)
+        if not helper.is_file():
+            raise ValueError("Missing evidence validation runtime")
+        helper_target = "scripts/run_artifacts.py" if name == "blend-generate-test-spec" else f"_kit/{REPORT_OWNER}/scripts/run_artifacts.py"
+        files[helper_target] = helper.read_bytes()
+        if name == "blend-automation-test":
+            selected.append(f"{REPORT_OWNER}/references/test-report.md")
     for directory in RESOURCE_DIRS:
         path = safe_path(source, f"{own}/{directory}")
         if path.exists():
@@ -265,24 +281,32 @@ def prepare_skill(source: Path, name: str, rows: list[dict[str, str]]) -> dict[s
     elif name == "blend-generate-test-spec":
         raise ValueError("Test Spec exporter dependency declaration is missing")
     selected += [row["Template"] for row in rows]
+    targets = {relative: relative[len(own) + 1:] if relative.startswith(own + "/") else "_kit/" + relative
+               for relative in selected}
     for relative in dict.fromkeys(selected):
         path = safe_path(source, relative)
         if not path.is_file():
             raise ValueError(f"Missing source resource: {relative}")
         data = path.read_bytes()
         is_template = any(row["Template"] == relative for row in rows)
-        own_resource = relative.startswith(own + "/")
-        target = relative[len(own) + 1:] if own_resource else "_kit/" + relative
+        target = targets[relative]
         # Registry dependencies include exact template copies from every owner.
         if is_template:
             files["_kit/" + relative] = data
         if path.suffix == ".md" and not is_template:
             data = normalize(data)
             text = data.decode("utf-8")
-            if own_resource:
-                prefix = Path(target).parent
-                workflow = os.path.relpath("_kit/shared", prefix.as_posix() or ".").replace("\\", "/")
-                text = text.replace("../../shared/", workflow + "/") if target == "SKILL.md" else text.replace("../../../shared/", workflow + "/")
+            # Rewrite links from declared source resources, including cross-skill
+            # report helpers; emitted skills never require sibling installation.
+            def emitted_link(match):
+                value = match.group(1)
+                path, marker, fragment = value.strip().strip("<>").partition("#")
+                source_target = posixpath.normpath(posixpath.join(posixpath.dirname(relative), path))
+                if source_target not in targets:
+                    return match.group(0)
+                emitted = posixpath.relpath(targets[source_target], posixpath.dirname(target) or ".")
+                return "](" + emitted + (marker + fragment if marker else "") + ")"
+            text = LINKS.sub(emitted_link, text)
             if relative == "shared/artifact-formats.md":
                 for row in rows:
                     text = text.replace("| " + row["Template"] + " |", "| _kit/" + row["Template"] + " |")

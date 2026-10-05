@@ -1,0 +1,20 @@
+{
+  "fixture_kind": "synthetic-saved-report-excerpt",
+  "schema_version": "test-report@2.1.0",
+  "feature_id": "SYN-SC",
+  "design_revision": "scenario-r1",
+  "run_id": "2026-10-05-901",
+  "authoritative_report": "disposable-scenario-report.xlsx",
+  "source_readiness": "Draft",
+  "rows": [
+    {"case_id": "TC-SC-01", "variant_id": "lt", "status": "Không đạt", "actual": "CP-setup: threshold30/comparator< verified. CP-result:29 and30 red,total2; disagrees with confirmed oracle. Observation-only; source remainsDraft. Highlight coverage incomplete; no accepted screenshot record.", "accepted_evidence": []},
+    {"case_id": "TC-SC-01", "variant_id": "le", "status": "Chưa thực hiện", "actual": "CP-setup andCP-result observations pending safe writeback at user stop;29 and30 red,total2. Screenshot proof not reviewed.", "accepted_evidence": []},
+    {"case_id": "TC-SC-02", "variant_id": "cancel", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-02", "variant_id": "confirm", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-03", "variant_id": "base", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-04", "variant_id": "base", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-05", "variant_id": "positive", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-05", "variant_id": "disabled", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []},
+    {"case_id": "TC-SC-05", "variant_id": "boundary", "status": "Chưa thực hiện", "actual": "", "accepted_evidence": []}
+  ]
+}

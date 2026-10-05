@@ -13,3 +13,7 @@ Thumbs.db
 tests/results/
 docs/test_results/
 docs/plans/
+
+# Marketplace installs only the canonical generated plugin package.
+dist/*
+!dist/plugins/

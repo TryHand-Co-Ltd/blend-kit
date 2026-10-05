@@ -77,6 +77,27 @@ def mapping(rows: list[dict[str, str]], output_type: str, language: str) -> dict
     return matches[0]
 
 
+def source_mapping(text: str, rows: list[dict[str, str]], output_type: str,
+                   language: str) -> dict[str, str]:
+    """Test case provenance selects its frozen schema; never infer from layout."""
+    row = mapping(rows, output_type, language)
+    if output_type != "test-cases":
+        return row
+    identities = re.findall(r"<!--\s*blend-template:\s*test-cases@(\d+\.\d+\.\d+)",
+                            visible_body(text, keep_comments=True))
+    if identities in (["1.0.0"], ["1.1.0"]):
+        row = dict(row)
+        row["Version"] = identities[0]
+        row["Template"] = (Path(row["Template"]).parent / "legacy" /
+                            f"test-cases-template.{language}.md").as_posix()
+    elif identities == ["1.2.0"]:
+        row = dict(row)
+        row["Version"] = "1.2.0"
+        row["Template"] = (Path(row["Template"]).parent / "legacy-1.2" /
+                           f"test-cases-template.{language}.md").as_posix()
+    return row
+
+
 def validate_output_filename(filename: str, row: dict[str, str]) -> None:
     if not filename or "\\" in filename or ":" in filename or any(part in ("", ".", "..") for part in filename.split("/")):
         raise ValueError("Output filename is not a portable relative path")
@@ -155,7 +176,7 @@ def validate_markdown(text: str, row: dict[str, str], *, required_fields: tuple[
 def validate_output(text: str, filename: str, rows: list[dict[str, str]], output_type: str,
                     language: str, **kwargs) -> None:
     """Legacy API retained for historical proof scripts and fixture callers."""
-    row = mapping(rows, output_type, language)
+    row = source_mapping(text, rows, output_type, language)
     validate_output_filename(filename, row)
     validate_markdown(text, row, **kwargs)
 
@@ -227,11 +248,16 @@ def validate_entries(content: str, schema: str, location: str) -> None:
 def check_output(text: str, filename: str, rows: list[dict[str, str]], output_type: str,
                  language: str, resource_root: Path) -> None:
     """Before-handoff gate: registered identity/order and asset-derived filled slots."""
-    row = mapping(rows, output_type, language)
+    row = source_mapping(text, rows, output_type, language)
     if not filename.endswith(".md"):
         raise ValueError("This gate checks Markdown only; workbook/SQL require their own gates")
     validate_output(text, filename, rows, output_type, language)
     template = (resource_root / row["Template"]).read_text(encoding="utf-8")
+    if output_type == "test-cases" and row["Version"] == "1.0.0":
+        # 1.0.0 had the same fields except the optional relative screen path.
+        # Preserve stored legacy asset bytes; adjust only its in-memory schema.
+        template = template.replace("test-cases@1.1.0", "test-cases@1.0.0")
+        template = re.sub(r"^\| screen_relative_path \|[^\n]*\n", "", template, flags=re.M)
     validate_markdown(template, row)
     if re.search(r"\{\{.*?\}\}|TEMPLATE INSTRUCTIONS|AUTHORING:", text, re.S | re.I):
         raise ValueError("Unfilled placeholder or authoring instruction remains")

@@ -10,8 +10,8 @@ Một file Research mặc định không biểu đạt được nhiều câu h�
 
 | Artifact | Căn cứ |
 | --- | --- |
-| Design | [Approved design 000003](../plans/2026-10-02-000003-research-planning-code-review-design.vi.md), D1–D5 và N1–N11. |
-| Plan | [Approved plan 000004](../plans/2026-10-02-000004-research-planning-code-review-plan.vi.md), T1–T7 và một Verify Gate. |
+| Design | Approved design 000003, D1–D5 và N1–N11. |
+| Plan | Approved plan 000004, T1–T7 và một Verify Gate. |
 | Contract | [Workflow](../../shared/workflow.md), [Registry](../../shared/artifact-formats.md), [Common review policy](../../shared/review-policy.md), [Pinned role protocol](../../shared/bug-hunter.md). |
 | Lịch sử | [Decision 001](001-blend-kit-workflow.vi.md) và validation/runtime snapshots của ba skill giữ nguyên phạm vi chứng cứ cũ. |
 

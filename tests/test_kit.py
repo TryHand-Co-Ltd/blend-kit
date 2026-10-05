@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 # The historical customer-report dispatch identifier now checks the same-file report lifecycle.
-AREAS = ("templates", "topics", "task", "test-spec", "review", "planning", "code-review", "customer-report", "package")
+AREAS = ("templates", "topics", "task", "test-spec", "review", "planning", "code-review", "customer-report", "automation", "package")
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ("blend-generate-task", "blend-generate-test-spec", "blend-review-artifacts",
-          "blend-plan-implementation", "blend-review-code")
+          "blend-plan-implementation", "blend-review-code", "blend-automation-test")
 
 
 # Compatibility exports: historical proof scripts keep their original API, while
@@ -31,7 +31,7 @@ validate_output = _gate.validate_output
 
 
 def resource_gaps(root: Path) -> list[str]:
-    """Check actual five-skill Markdown resource closure in the source package."""
+    """Check actual six-skill Markdown resource closure in the source package."""
     from urllib.parse import unquote, urlsplit
     gaps = []
     for name in SKILLS:

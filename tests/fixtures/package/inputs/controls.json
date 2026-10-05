@@ -1,20 +1,64 @@
 {
-  "profiles": ["codex", "cursor", "claude"],
-  "skills": ["blend-generate-task", "blend-generate-test-spec", "blend-review-artifacts", "blend-plan-implementation", "blend-review-code"],
-  "legacy_profiles": ["codex", "cursor", "claude"],
-  "legacy_file_count": 297,
-  "legacy_sha256": "3ef339d94abaed5326547a78dc8c4c0403d54bcd4209852c50905625770ce6a3",
-  "excluded_source_files": ["tests/private-fixture.php", "docs/plans/private.md", ".codex/config.toml", "node_modules/private.js", "blend-context/features/private/CONTEXT.md", "Blend/application/private.php", "session-recovery/private.md", "tests/scorer-only/oracle.json", "tests/results/private.md"],
+  "profiles": [
+    "codex",
+    "cursor",
+    "claude"
+  ],
+  "skills": [
+    "blend-generate-task",
+    "blend-generate-test-spec",
+    "blend-review-artifacts",
+    "blend-plan-implementation",
+    "blend-review-code"
+  ],
+  "excluded_source_files": [
+    "tests/private-fixture.php",
+    "docs/plans/private.md",
+    ".codex/config.toml",
+    "node_modules/private.js",
+    "blend-context/features/private/CONTEXT.md",
+    "Blend/application/private.php",
+    "session-recovery/private.md",
+    "tests/scorer-only/oracle.json",
+    "tests/results/private.md"
+  ],
   "output_names": {
-    "research": ["research/score-source-mapping.{language}.md", "research/RC-001-A-permission-boundaries.{language}.md"],
-    "sql-investigation": ["research/score-source-mapping.sql"],
-    "implementation-plan": ["plans/score-method-implementation-plan.{language}.md", "plans/RC-001-A-permission-implementation-plan.{language}.md"],
-    "code-review": ["score-method-code-review.{language}.md", "RC-001-A-permission-code-review.{language}.md"]
+    "research": [
+      "research/score-source-mapping.{language}.md",
+      "research/RC-001-A-permission-boundaries.{language}.md"
+    ],
+    "sql-investigation": [
+      "research/score-source-mapping.sql"
+    ],
+    "implementation-plan": [
+      "plans/score-method-implementation-plan.{language}.md",
+      "plans/RC-001-A-permission-implementation-plan.{language}.md"
+    ],
+    "code-review": [
+      "score-method-code-review.{language}.md",
+      "RC-001-A-permission-code-review.{language}.md"
+    ]
   },
   "invalid_output_names": {
-    "research": ["research.ja.md", "research/<topic>.ja.md", "research/.ja.md", "research/../score.ja.md", "research/nested/score.ja.md"],
-    "implementation-plan": ["implementation-plan.ja.md", "plans/<scope>-implementation-plan.ja.md", "plans/-implementation-plan.ja.md", "plans/../score-implementation-plan.ja.md"],
-    "code-review": ["<scope>-code-review.ja.md", "-code-review.ja.md", "../score-code-review.ja.md", "nested/score-code-review.ja.md"]
+    "research": [
+      "research.ja.md",
+      "research/<topic>.ja.md",
+      "research/.ja.md",
+      "research/../score.ja.md",
+      "research/nested/score.ja.md"
+    ],
+    "implementation-plan": [
+      "implementation-plan.ja.md",
+      "plans/<scope>-implementation-plan.ja.md",
+      "plans/-implementation-plan.ja.md",
+      "plans/../score-implementation-plan.ja.md"
+    ],
+    "code-review": [
+      "<scope>-code-review.ja.md",
+      "-code-review.ja.md",
+      "../score-code-review.ja.md",
+      "nested/score-code-review.ja.md"
+    ]
   },
   "relocated_source": "workspace with spaces/nested/document kit",
   "relocated_output": "another workspace/profile resources",

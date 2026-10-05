@@ -15,10 +15,8 @@ from urllib.parse import unquote
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
-from report_model import (REPORT_LAYOUTS, FAMILY, VERSION, SUMMARY_FIELDS, INPUT_FIELDS,
-    ClosureConfirmation, EvidenceAccess, _records, _capture, _unchanged, _read_text,
-    public_text, shared_url, url_spans, required, timestamp, prepare_report, display_lines, summary_formulas, detail_backlink_formula,
-    recorded_decision_inputs)
+from report_model import (ClosureConfirmation, EvidenceAccess, _records,
+    public_text, shared_url, url_spans, required, timestamp)
 
 
 @dataclass(frozen=True)
@@ -30,6 +28,7 @@ class ScreenshotReview:
     reviewed_by: str
     reviewed_at: str
     source: str
+    checkpoint_id: str = ''
 
 
 def _formula_reference_key(value, sheet_names):
@@ -84,13 +83,20 @@ def _xml_attributes(root, name, urls):
                 urls.update(match.group() for match in url_spans(value))
 
 
-def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None):
+def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None, image_digests=None):
     """Inspect saved relationships, metadata, text and image bytes, never strip them."""
     urls, media, captions = set(), {}, []
-    locale = REPORT_LAYOUTS[data.language]
+    from report_model import report_locale
+    locale = report_locale(data)
+    from block_report import layout
+    cards, _ = layout(data)
+    # Authorize only frozen source literals after the same reader transformation.
+    # Actual cells and XML attributes retain their separate strict privacy checks.
+    dummy_literals = {value for card in cards for _, text, _, right, _, label in card['rows']
+        for value in (text, right, label) if isinstance(value, str) and '[dummy-input: ' in value}
     if allowed_formulas is None:
-        allowed_formulas = {value.removeprefix('=') for value in summary_formulas(data).values()}
-        allowed_formulas.update(detail_backlink_formula(row.identity, data).removeprefix('=') for row in data.rows)
+        from block_report import formulas
+        allowed_formulas = {value.removeprefix('=') for value in formulas(data).values()}
     allowed_formulas.update('"' + label + '"' for label in locale['statuses'].values())
     allowed_formulas.add('"' + ','.join(locale['statuses'].values()) + '"')
     allowed_formulas = {_formula_reference_key(value, locale['sheets']) for value in allowed_formulas}
@@ -143,9 +149,7 @@ def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None):
                         if element.text and tag not in ('f', 'formula', 'formula1', 'formula2'):
                             value = element.text
                             if value.strip():
-                                dummy_input = '[dummy-input: ' in value and (any(value in r.conditions for r in data.rows)
-                                    or any(value in item[1] for case in data.cases for item in case['preparation_items'])
-                                    or any(value in pair[0] for case in data.cases for pair in case['variants'].values()))
+                                dummy_input = name.startswith(('xl/worksheets/', 'xl/sharedStrings.xml')) and value in dummy_literals
                                 public_text(value, name, dummy_input=dummy_input)
                                 scan = re.sub(r'\[dummy-input: [^\]\n]+\]', '', value) if dummy_input else value
                                 urls.update(match.group() for match in url_spans(scan))
@@ -155,6 +159,9 @@ def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None):
                 raise ValueError(f'Unsupported binary package entry: {name}')
     for url in urls:
         shared_url(url, 'saved workbook URL')
+    digests = Counter(media.values()) if image_digests is None else Counter(image_digests)
+    if image_digests is not None and set(digests) != set(media.values()):
+        raise ValueError('Saved media payloads differ from bound image instances')
     if phase == 'complete':
         closure = _records(payload.get('closure_confirmation'), ClosureConfirmation)
         for key in ('closed_by', 'source', 'audience'):
@@ -173,9 +180,8 @@ def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None):
         for url in sorted(urls - accesses.keys()):
             gaps.append(f'Access not verified for link: {url}')
         reviews = [_records(item, ScreenshotReview) for item in payload.get('screenshots', [])]
-        if len(reviews) != len(media):
+        if len(reviews) != sum(digests.values()):
             gaps.append('Each embedded image requires one matching screenshot review')
-        digests = Counter(media.values())
         reviewed = Counter()
         identities = {(r.case_id, r.variant) for r in data.rows}
         for review in reviews:

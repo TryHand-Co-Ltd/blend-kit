@@ -7,6 +7,12 @@ description: Generate or refresh BLEND test specifications and one editable test
 
 Read [shared workflow](../../shared/workflow.md) and [template registry](../../shared/artifact-formats.md). They govern discovery, identity, source authority, language, ownership and permission boundaries. Use the resolved BLEND checkouts; never assume the author's workstation layout.
 
+Read the [scenario testing contract](../../shared/automation-testing.md) for current source1.3 and the sole report2.4. Supported older sources remain read-only inputs; older workbook formats are rejected without rewrite or migration.
+
+For a report that will be shared with customers, use the registered `test-report@2.4.0` default layout. This is the same authoritative execution workbook, not a second customer result copy. Each TC must be understandable without opening its Markdown source: concrete context/data, actions, overall final outcome, independent variant results and evidence navigation. Use human descriptions before stable variant codes, e.g. Nhỏ hơn (lt), Nhỏ hơn hoặc bằng (le), Hủy xóa (cancel), Đồng ý xóa (delete). Keep enough conditions/data/actions to run and assess the case; no blanket shortening. Show specific blocked/unknown-oracle impacts without a Chuẩn bị/readiness label. Exactly two sheets; no review/sample notes or default technical appendix. Only evidence collapses: one group per TC, initially collapsed; each image has a descriptive title above it and is vertically stacked, with no URL requirement. Empty evidence is one Chưa có ảnh/画像なし line. Do not equate an existing recorded PASS with acceptance when its preparation/oracle is unresolved.
+
+Supported older testcase sources, including RC-0011.1, project directly to current report2.4 without rewriting source grammar or inventing action deltas/checkpoints. Preserve IDs, assertions and literal values; new reports start blank and never transfer old PASS or evidence. Older saved workbook formats are rejected without mutation; no migration command is shipped.
+
 ## Intake and research
 
 For an existing report, check the same workbook using [report guidance](references/test-report.md); do not regenerate it or create a second report. For test design choose `design` for source-backed coverage with visible gaps, `finalize` to verify concrete preparation/entry/observation seams against the supplied implementation, or `refresh` for affected clauses/cases and their immediate dependents. None executes tests. Honor requested language/file subsets; defaults are JA–VI Markdown and one VI workbook under the existing meaningful `test-spec` destination/revision.
@@ -23,11 +29,15 @@ Load each exact registered asset before authoring. Use its marker/version, requi
 | Artifact | Template / purpose |
 | --- | --- |
 | scope-and-approach | `assets/scope-and-approach-template.{ja,vi}.md`: baseline/research, scope, preparation, evidence, clause/branch coverage and gaps |
-| test-cases | `assets/test-cases-template.{ja,vi}.md`: business-flow groups; compact cases, expanded steps and independently reportable variants |
+| test-cases | `assets/test-cases-template.{ja,vi}.md`: one objective per scenario, shared steps, independently reportable variants and concrete checkpoint oracles |
 | test-data | `assets/test-data-template.{ja,vi}.md`: shared fixture create/verify/reset and decisive values |
 | test-report.{ja,vi}.xlsx | `assets/test-report-block-template.{ja,vi}.xlsx`: exactly two sheets, full TC blocks and blank result/image areas; VI by default |
 
 Use explicit shared-context references with local overrides to avoid boilerplate while preserving feature/function, configuration, trigger, observation, actor/permission and state. Group main path → variants/boundaries → validation/permission → recovery. Priority selects run order with dependencies/readiness; it does not reorder the design into all High cases first. No hidden previous-case state chains. Keep expected basis, readiness and actual execution independent.
+
+Absorb tiny UI/persistence checks into the checkpoint that proves the same objective. Group only compatible actor, fixture, trigger, reset and oracle families; retain independently failing permission, lifecycle, source, writer and output-format branches as explicit variants or separate scenarios. Write shared preparation once and require independent create/verify/reset for every variant. There is no target case count. On an authorized grouping refresh, map every old Case/Variant and obligation to the new Case/Variant/Checkpoint or classified gap in scope Coverage before removing an independent case; record disposition and reduction rationale. Old PASS/images do not transfer automatically.
+
+New cases require Steps, Variants (including `base`) and Checkpoints. Case Expected is one concrete overall outcome. Steps have only Step/Action; final variant Expected is concrete for that branch. Write one Reset and reference shared fixture details; never copy another branch outcome or repeat Expected/preservation per step. Define checkpoint stage, exact observable focus and screenshot/export/inspection artifact, only at meaningful before/setup/result/after/export proof milestones; no setup/result or every-click quota. Core criteria/Actual/Status and material conditions stay visible. Identity, readiness, authority, fixture setup/reset and checkpoint provenance remain internal; include only technical detail needed to execute, understand or verify beside its related content. Removing reader prose never removes eligibility or DB/API/export proof. Group same-procedure data variants in a table; display different procedures/initial states as separately understandable situations. Scope records execution lane and proof limits; DB, security, performance and fault-injection obligations are not forced into screenshot-only Browser cases. Generator authors a staged evidence plan, never observations, image paths or review attestations. `blend-automation-test` executes that frozen plan; a test-execution request does not authorize redesign, DB seeding, application fixes, installation or publication.
 
 ## Workbook
 
@@ -41,7 +51,7 @@ Use `--language ja` for an explicitly requested JA workbook; the default is VI. 
 
 ## Check the same report
 
-Use [report guidance](references/test-report.md) for entry fields, read-only checking and genuine completion/image/access attestations. `check_report.py --report REPORT.xlsx --source-dir DESIGN --language vi --phase in-progress` reports current gaps without saving the workbook. Use `--phase complete` with actual typed attestations through stdin to assess completion. Missing actual results, reasons, route/image review or access prevents a complete conclusion; update the same workbook with authorized inputs. Presentation readiness never means execution is complete. Legacy schemas remain historical inputs and require separate migration authorization.
+Use [report guidance](references/test-report.md) for entry fields, read-only checking and genuine completion/image/access attestations. `check_report.py --report REPORT.xlsx --source-dir DESIGN --language vi --phase in-progress` reports current gaps without saving the workbook. Use `--phase complete` with actual typed attestations through stdin to assess completion. Missing actual results, reasons, route/image review or access prevents a complete conclusion; update the same workbook with authorized inputs. Presentation readiness never means execution is complete. Older source grammars remain read-only inputs; older workbook formats are unsupported.
 
 ## Reconcile and deliver
 

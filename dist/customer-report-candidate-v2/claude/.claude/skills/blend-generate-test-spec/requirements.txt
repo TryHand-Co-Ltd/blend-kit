@@ -1,3 +1,0 @@
-openpyxl>=3.1.2,<4
-# Customer evidence-image normalization and embedding; no automatic installation.
-Pillow>=12.3,<13

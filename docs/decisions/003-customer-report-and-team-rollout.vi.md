@@ -1,12 +1,15 @@
 # 003 — Báo cáo khách hàng riêng và rollout có phạm vi
 
+> Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support.
+
+
 ## Status
 
 Accepted — thiết kế được duyệt ngày 2026-10-03; plan và Parallel được chọn ngày 2026-10-04. Quyết định này bổ sung [001](001-blend-kit-workflow.vi.md) và [002](002-research-planning-code-review.vi.md); không thay thế schema/proof lịch sử hoặc cấp quyền active cutover/publication.
 
 ## Căn cứ
 
-[Design 000006](../plans/2026-10-03-000006-customer-test-report-and-team-readiness-design.vi.md) D1–D4/R1–R10 và [plan 000007](../plans/2026-10-03-000007-customer-test-report-and-team-readiness-plan.vi.md). Workbook nội bộ cần traceability chi tiết; khách hàng chỉ nhận báo cáo đã đóng run nên cần đường đọc ngắn, độc lập và không lộ nội dung local.
+Design 000006 D1–D4/R1–R10 và plan 000007. Workbook nội bộ cần traceability chi tiết; khách hàng chỉ nhận báo cáo đã đóng run nên cần đường đọc ngắn, độc lập và không lộ nội dung local.
 
 ## Quyết định
 

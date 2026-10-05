@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "blend-kit",
-  "version": "1.0.0",
-  "description": "BLEND task generation, test specification, artifact review, implementation planning, and code review workflows.",
+  "version": "2.0.0",
+  "description": "BLEND task generation, scenario test specification, automation testing, artifact review, implementation planning, and code review workflows.",
   "author": {
     "name": "TryHand Co., Ltd."
   },

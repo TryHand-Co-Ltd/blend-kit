@@ -1,8 +1,11 @@
 # 004 — Một workbook kiểm thử xuyên suốt
 
+> Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support.
+
+
 Ngày quyết định: 2026-10-04. Trạng thái: hướng và plan đã được người dùng duyệt; kiểm chứng triển khai được ghi riêng.
 
-Căn cứ: [thiết kế đã duyệt](../plans/2026-10-04-000001-unified-test-report-design.vi.md), [implementation plan](../plans/2026-10-04-000002-unified-test-report-plan.vi.md), D1–D4 và U1–U8.
+Căn cứ: thiết kế đã duyệt, implementation plan, D1–D4 và U1–U8.
 
 ## Quyết định
 

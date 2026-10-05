@@ -14,8 +14,8 @@ Bộ active còn phụ thuộc bố cục workstation, ngôn ngữ Nhật–Anh 
 | --- | --- | --- |
 | Contract | [Shared workflow](../../shared/workflow.md), [Artifact formats](../../shared/artifact-formats.md) | Discovery, authority, ownership, handoff và template registry dùng chung. |
 | Story | Không có | Một thay đổi coherent của package, không tạo story hierarchy. |
-| Plan | [Approved plan](../plans/2026-10-02-000002-blend-kit-plan.vi.md) | R1–R14 và sáu implementation slices; user đã chọn Parallel. |
-| Design | [Approved design](../plans/2026-10-02-000001-blend-kit-design.vi.md) | Format sources, trade-offs và semantic proof. |
+| Plan | Approved plan | R1–R14 và sáu implementation slices; user đã chọn Parallel. |
+| Design | Approved design | Format sources, trade-offs và semantic proof. |
 | Validation | [Validation template](../../assets/validation-report-template.vi.md) | Report actual sẽ ở `docs/test_results/blend-kit-validation.vi.md` khi T6 tạo; chưa có runtime proof. |
 
 ## Options

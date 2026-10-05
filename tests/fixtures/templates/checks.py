@@ -1,4 +1,4 @@
-"""Five-skill conformance/integration controls; not actual model/runtime proof."""
+"""Six-skill conformance/integration controls; not actual model/runtime proof."""
 import hashlib
 import json
 import re
@@ -214,10 +214,11 @@ def run(root: Path) -> list[str]:
     assert active_assets == {"test-report-block-template.ja.xlsx", "test-report-block-template.vi.xlsx"}
     expected_mappings = {(family, language) for family in expected_families
                          for language in (("neutral",) if family == "sql-investigation" else
-                                          ("vi",) if family == "validation-report" else ("ja", "vi"))}
+                                           ("vi",) if family == "validation-report" else ("ja", "vi"))}
     assert {(row["Output type"], row["Language"]) for row in rows} == expected_mappings
     assert len(rows) == len(expected_mappings), "Output/language mapping duplicated or omitted"
-    assert {"topics", "planning", "code-review", "customer-report"}.issubset(AREAS), "New fixture dispatch group unavailable"
+    assert {"topics", "planning", "code-review", "customer-report", "automation"}.issubset(AREAS), "New fixture dispatch group unavailable"
+    assert len(SKILLS) == 6 and SKILLS[-1] == "blend-automation-test"
     rejected(lambda: mapping(rows, "unmapped-plan", "vi"), "unsupported output")
     rejected(lambda: mapping(rows, "research", "en"), "unmapped language")
 
@@ -241,7 +242,7 @@ def run(root: Path) -> list[str]:
     rejected(lambda: validate_output_filename("database-design.sql", sql), "DDL misrouted as query topic")
 
     assert inventory_gaps(root, rows) == [], "Current registered assets missing/invalid"
-    assert resource_gaps(root) == [], "Five-skill source resource closure failed"
+    assert resource_gaps(root) == [], "Six-skill source resource closure failed"
     # Completed structural controls use the actual final assets. No model run implied.
     labels = {
         ("implementation-plan", "ja"): ("承認根拠", "承認範囲", "検証状態"),
@@ -350,20 +351,31 @@ def run(root: Path) -> list[str]:
         assert (root / evidence["scorer_oracle"]).is_file()
         assert all(not (root / evidence["scorer_oracle"]).resolve().is_relative_to((root / path).resolve())
                    for path in evidence["writer_roots"])
-    assert {scenario["id"] for scenario in scenarios["scenarios"]} == {f"S{i:02}" for i in range(1, 20)}
+    assert {scenario["id"] for scenario in scenarios["scenarios"]} == {f"S{i:02}" for i in range(1, 22)}
+    assert len(scenarios["scenarios"]) == 21, "Duplicate runtime scenario ID"
+    for area in ("test-spec-scenario-grouping", "automation"):
+        evidence = scenarios["evaluation_inputs"][area]
+        assert evidence["evaluation_method"]
+        assert all((root / path).is_dir() and "scorer-only" not in Path(path).parts for path in evidence["writer_roots"])
+    registered = {scenario["id"]: scenario for scenario in scenarios["scenarios"]}
+    assert registered["S20"]["proof_kind"] == "actual-generator-semantic-evaluation"
+    assert registered["S21"]["proof_kind"] == "synthetic-control-replay-not-live-browser-or-sheets"
+    assert all((root / path).is_dir() for identity in ("S20", "S21") for path in registered[identity]["fixture_roots"])
     assert all(scenario["required_runtime_proof"] and scenario["oracle"]
                for scenario in scenarios["scenarios"]), "Scenario lacks actual-runtime proof oracle"
     assert {requirement for scenario in scenarios["scenarios"][:12] for requirement in scenario["requirements"]} == {f"R{i}" for i in range(1, 15)}
     assert {requirement for scenario in scenarios["scenarios"][12:16] for requirement in scenario["requirements"]} == {f"N{i}" for i in range(1, 12)}
     assert {requirement for scenario in scenarios["scenarios"][16:] for requirement in scenario["requirements"] if requirement.startswith("C")} == {f"C{i}" for i in range(1, 11)}
     assert {requirement for scenario in scenarios["scenarios"] for requirement in scenario["requirements"] if requirement.startswith("U")} == {f"U{i}" for i in range(1, 9)}
+    assert {requirement for scenario in scenarios["scenarios"] for requirement in scenario["requirements"] if requirement.startswith("A")} == {f"A{i:02}" for i in range(1, 15)}
+    assert {requirement for scenario in scenarios["scenarios"] for requirement in scenario["requirements"] if requirement.startswith("K")} == {f"K{i}" for i in range(15, 21)}
     validation = mapping(rows, "validation-report", "vi")
     check_identity((root / validation["Template"]).read_text(encoding="utf-8"), validation)
-    return [f"{len(rows)} output/language mappings and paired semantic schema, including one active test-report@2.0.0 JA/VI workbook pair",
+    return [f"{len(rows)} output/language mappings and paired semantic schema, including one active test-report@2.4.0 JA/VI workbook pair",
             "topic/plan/code-review filename patterns and new-family missing/version/order/field controls",
             "current research 1.1.0 rejects unchanged read-only legacy 1.0.0 snapshots as new outputs",
             "positive JA/VI controls and negative missing/version/section/field/order/omission controls",
             "asset-derived JA/VI inline summaries, populated block/list and scoped no-findings accepted; empty/drifted presentation rejected",
-            "missing-asset and wrong-asset-version controls", "19 actual-runtime scenario inventory; R1–R14, N1–N11, C1–C10 and U1–U8 coverage",
-            "actual five-skill resource closure, common eleven-field roles/license, plan-to-review basis and changed-source/scope/parent/approval/AC negative controls",
+            "missing-asset and wrong-asset-version controls", "21 scenario inventory; generator semantic and explicitly synthetic automation replay registered; R1–R14, N1–N11, C1–C10, U1–U8, A01–A14 and K15–K20 coverage",
+            "actual six-skill resource closure, common eleven-field roles/license, plan-to-review basis and changed-source/scope/parent/approval/AC negative controls",
             "structural controls only; source semantics and actual writer/runtime behavior not certified"]

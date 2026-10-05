@@ -1,9 +1,17 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "purpose": "Scenario inventory for actual runtime evaluation; static fixture checks do not prove model behavior.",
   "static_checks_satisfy_runtime_proof": false,
   "runtime_acceptance": "Assess actual output inventory, source-bound obligations, captured identities and actual role provenance with independent readers/scorers. Matching keywords, template headings, fixture expectations or nonempty run labels never constitute model execution, role execution, runtime correctness or publication proof. Missing required outputs/approval/scope/roles remain Blocked or Needs evidence.",
   "evaluation_inputs": {
+    "test-spec-scenario-grouping": {
+      "writer_roots": ["tests/fixtures/test-spec/inputs/scenario-grouping", "tests/fixtures/test-spec/inputs/compact-scenario"],
+      "evaluation_method": "Independent semantic comparison of generated design against each raw requirement, preserved branch and old-ID mapping; static keywords do not satisfy this evaluation."
+    },
+    "automation": {
+      "writer_roots": ["tests/fixtures/automation/inputs/execution-controls", "tests/fixtures/test-spec/inputs/scenario-grouping", "tests/fixtures/test-spec/inputs/compact-scenario"],
+      "evaluation_method": "Synthetic control replay only: compare actual actions, terminal observations, report readback and unchanged remaining rows against controls. Label simulated browser/Sheets observations; native pixels, exports and Saved persistence require separate live evidence."
+    },
     "topics": {
       "writer_roots": [
         "tests/fixtures/topics/inputs/runtime-input",
@@ -482,6 +490,45 @@
       "required_runtime_proof": true
     },
     {
+      "id": "S20",
+      "areas": ["test-spec"],
+      "fixture_roots": ["tests/fixtures/test-spec/inputs/scenario-grouping", "tests/fixtures/test-spec/inputs/compact-scenario"],
+      "prompt": "Generate a bilingual compact source1.3 Test Spec from the supplied synthetic raw requirements and prior ID inventory, then compare it against every obligation and branch. Preserve supplied source1.2 as frozen historical input; do not execute the application or invent execution results.",
+      "requirements": ["A08", "A09", "A11", "A13", "A14", "K15", "K16", "K17", "K20"],
+      "oracle": [
+        "Fixed < and <= boundaries remain separately reportable with per-variant expected, rather than copied parent expected",
+        "Cancel/confirm deletion, incomplete rule/stale form and AND all-positive/single-negative controls retain every independent outcome and reset",
+        "Prior case/variant IDs map explicitly to new case/variant/checkpoint; no quota-driven deletion or inherited PASS",
+        "Source authority/readiness/execution lane and bilingual ID/meaning parity are retained; no runtime evidence invented",
+        "Source1.3 has one concrete overall Expected, two-column action-only Steps, one Reset and four-column Variants with concrete final outcomes; temporal/preservation oracles survive in required checkpoints",
+        "Source1.0/1.1/1.2/1.3 readers preserve independent branch semantics and unchanged source bytes; every source generates only current report2.4. Old workbook versions are rejected without mutation."
+      ],
+      "required_runtime_proof": true,
+      "proof_kind": "actual-generator-semantic-evaluation"
+    },
+    {
+      "id": "S21",
+      "areas": ["automation"],
+      "fixture_roots": ["tests/fixtures/automation/inputs/execution-controls", "tests/fixtures/test-spec/inputs/scenario-grouping", "tests/fixtures/test-spec/inputs/compact-scenario"],
+      "prompt": "Replay the explicitly synthetic automation controls using the built skill and a disposable report. Record observed checkpoints and report writes; do not claim these simulated browser/Sheets responses are live runtime proof.",
+      "requirements": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A10", "A11", "A12", "A13", "A14", "K16", "K17", "K18", "K19", "K20"],
+      "oracle": [
+        "First independent case failure does not skip the next case; every requested variant has a truthful inventory entry",
+        "Draft or unknown expected produces observation only; missing mandatory assertion or app-export file cannot become PASS",
+        "Queued is not terminal; user stop preserves completed results and leaves unstarted rows NOT RUN",
+        "Each screenshot call is full_page=true, reviewed highlight covers the observed assertion, English note reflects that observation, and transient annotation is cleaned",
+        "Desktop viewport defaults to 1920x1080; full-page limits are explicit and every captured artifact is archived immediately by verified feature/run identity without overwriting",
+        "Multiple images bind to their checkpoint/variant in Testcases with no Evidence tab and no cross-variant overwrite",
+        "Unknown Sheets write outcome triggers exact reread before retry; unavailable native insertion/persistence stays unverified, not substituted by temporary IMAGE URL",
+        "One authoritative report; no MCP upgrade, seed, app fix, design migration, install or publication",
+        "Compact2.2 Expected B:C, Actual D and unmerged Status E remain visible; owning metadata/fixture/checkpoint rows expand without a second execution denominator",
+        "Empty evidence is compact; accepted images reveal/grow only owned checkpoint rows, preserve original pixels/aspect ratio and stack vertically without covering the following TC",
+        "Synthetic XLSX grouping/image tests never certify native Sheets collapse, genuine pixel review, RC-001 migration/import/testing or installation"
+      ],
+      "required_runtime_proof": true,
+      "proof_kind": "synthetic-control-replay-not-live-browser-or-sheets"
+    },
+    {
       "id": "S19",
       "areas": [
         "package"
@@ -507,6 +554,8 @@
     "R": "Original three-skill design",
     "N": "Research/planning/code-review expansion",
     "C": "Customer report design 000006 R1–R10; Cn maps to Rn of that design",
-    "U": "Unified test report design 2026-10-04-000001 U1–U8; replaces two-workbook output direction, preserves historical proof"
+    "U": "Unified test report design 2026-10-04-000001 U1–U8; replaces two-workbook output direction, preserves historical proof",
+    "A": "Scenario testing and automation contract R01–R14; An maps to Rn of shared/automation-testing.md",
+    "K": "Approved compact template contract R15–R20; Kn maps to Rn of decision006 compact presentation"
   }
 }
