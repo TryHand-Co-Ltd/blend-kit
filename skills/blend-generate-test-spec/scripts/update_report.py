@@ -119,7 +119,7 @@ def _add_readable_images(sheet, checkpoint, records):
     for image, name, caption, title_row, area, display_width, height in plan:
         _text(sheet.cell(title_row,1),caption)
         from openpyxl.styles import Alignment
-        sheet.cell(title_row,1).alignment=Alignment(horizontal='left',vertical='top',indent=1,wrap_text=True)
+        sheet.cell(title_row,1).alignment=Alignment(horizontal='left',vertical='center',indent=1,wrap_text=True)
         sheet.row_dimensions[title_row].height = max(20,model.display_lines(caption,109)*14+6)
         sheet.row_dimensions[title_row].outlineLevel=1
         if sheet.row_dimensions[title_row].height > 409:
@@ -198,7 +198,7 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
             path=validate(record,Path(run_dir),{**identity,'checkpoint_id':cp,'report':str(report.resolve())})
             validated.append((record,Path(path)))
     captures[report]=model._capture(report)
-    book=load_workbook(io.BytesIO(captures[report][0]))
+    book=load_workbook(io.BytesIO(captures[report][0]), rich_text=True)
     summary,tests=book.worksheets
     run_cell=summary[f'B{model.SUMMARY_FIELDS["run_id"]}']
     if run_cell.value and run_cell.value!=identity['run_id']:
@@ -219,18 +219,20 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
                 editable.update((tests.title, f'A{row}') for row in cp['picture_rows'])
                 editable.add((tests.title, f'A{cp["label_row"]}'))
     before=_preserved(book,editable,mutable_rows)
-    _text(run_cell,identity['run_id'])
+    _text(run_cell,identity['run_id'],emphasis=False)
+    from openpyxl.styles import Alignment
+    run_cell.alignment=Alignment(horizontal='left',vertical='center',indent=1,wrap_text=True)
     for key,value in metadata.items():
         if key=='run_id' and value!=identity['run_id']:
             raise ValueError('Run metadata identity mismatch')
         model.public_text(value,key)
         if key=='period':
             model.timestamp(value,key)
-        _text(summary[f'B{model.SUMMARY_FIELDS[key]}'],value)
+        _text(summary[f'B{model.SUMMARY_FIELDS[key]}'],value,emphasis=False)
+        summary[f'B{model.SUMMARY_FIELDS[key]}'].alignment=Alignment(horizontal='left',vertical='center',indent=1,wrap_text=True)
     _text(tests[fields['status_cell']],model.REPORT_LAYOUTS[language]['statuses'][status])
     _text(tests[fields['actual_cell']],actual)
-    actual_width = 37
-    from openpyxl.styles import Alignment
+    actual_width = 32
     for address in (fields['actual_cell'],fields['status_cell']):
         tests[address].alignment=Alignment(horizontal='left',vertical='top',indent=1,wrap_text=True)
     actual_height = model.display_lines(actual,actual_width)*14+6
@@ -247,6 +249,7 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
         count = sum(image.anchor._from.row+1 in area for image in tests._images)
         header = same_case[0]['evidence_row']
         _text(tests.cell(header,1), ('Ảnh minh chứng — ' if language=='vi' else '証拠画像 — ')+str(count)+(' ảnh' if language=='vi' else '枚'))
+        tests.cell(header,1).alignment=Alignment(horizontal='left',vertical='center',indent=1,wrap_text=True)
     raw=serialize_report(book)
     descriptor,name=tempfile.mkstemp(prefix='.blend-writeback-',suffix='.xlsx',dir=report.parent)
     candidate=Path(name)
@@ -256,13 +259,13 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
             handle.flush()
             os.fsync(handle.fileno())
         blocks.check(candidate,source_dir,language)
-        reread=load_workbook(candidate)
+        reread=load_workbook(candidate, rich_text=True)
         after=_preserved(reread,editable,mutable_rows)
         target_names={image[5] for image in before[2] if image[5].startswith('BLEND|'+identity['case_id']+'|'+identity['variant_id']+'|')}
         same_target=lambda image: (image[0],image[1],image[5],image[6])
         if before[:2]!=after[:2] or before[3]!=after[3] or any((same_target(image) not in [same_target(i) for i in after[2]] if image[5] in target_names else image not in after[2]) for image in before[2]):
             raise ValueError('Non-target report history changed during writeback')
-        if reread.worksheets[1][fields['actual_cell']].value!=actual or reread.worksheets[1][fields['status_cell']].value!=model.REPORT_LAYOUTS[language]['statuses'][status]:
+        if str(reread.worksheets[1][fields['actual_cell']].value)!=actual or str(reread.worksheets[1][fields['status_cell']].value)!=model.REPORT_LAYOUTS[language]['statuses'][status]:
             raise ValueError('Writeback readback failed')
         model._unchanged(captures)
         os.replace(candidate,report)

@@ -1,5 +1,7 @@
 # Report dễ đọc và bằng chứng theo vùng cần quan sát
 
+> Layout và quy tắc tổng hợp hiện hành được thay bởi [quyết định 010](010-readable-execution-report.vi.md). Nội dung phiên bản bên dưới là lịch sử.
+
 > Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support.
 
 

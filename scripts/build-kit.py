@@ -99,7 +99,7 @@ def workbook_metadata(data: bytes, language: str, layout: dict) -> tuple[dict[st
             strings = ["".join(node.itertext()) for node in ET.fromstring(book.read("xl/sharedStrings.xml"))]
         # The current VI report uses localized detail-tab names.
         expected_sheets = ("Tổng quan", "Kiểm thử") if (
-            metadata.get("TemplateVersion") == "2.4.0" and language == "vi"
+            metadata.get("TemplateVersion") == "2.5.0" and language == "vi"
         ) else layout["sheets"]
         if metadata.get("Language") != language or sheets not in (list(expected_sheets[:2]), list(expected_sheets)):
             raise ValueError("Report language/sheet schema mismatch")
@@ -156,7 +156,7 @@ def report_layouts(source: Path) -> dict:
 
 def validate_template(data: bytes, row: dict[str, str], layouts: dict | None = None) -> None:
     if row["Template"].endswith(".xlsx"):
-        if row["Family"] != "test-report" or row["Version"] != "2.4.0":
+        if row["Family"] != "test-report" or row["Version"] != "2.5.0":
             raise ValueError("Unsupported workbook family")
         if layouts is None:
             layouts = report_layouts(Path(__file__).resolve().parents[1])

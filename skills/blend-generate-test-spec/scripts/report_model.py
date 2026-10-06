@@ -12,7 +12,7 @@ from urllib.parse import parse_qsl, unquote, urlsplit
 
 import export_report as working
 
-VERSION = "2.4.0"
+VERSION = "2.5.0"
 CUSTOMER_VERSION = VERSION  # Compatibility name for callers; one workbook format.
 REPORT_LAYOUTS = {
     "vi": {
@@ -74,6 +74,9 @@ class EvidenceAccess:
 
 
 def required(value, field: str) -> str:
+    from openpyxl.cell.rich_text import CellRichText
+    if isinstance(value, CellRichText):
+        value = str(value)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"Missing text: {field}")
     # Markdown decoding belongs only to working.parse_sources. Excel observations
@@ -153,6 +156,7 @@ def public_text(value: str, field: str, *, dummy_input: bool = False) -> str:
 
 def display_lines(value: str, width: int) -> int:
     """Shared display contract: JA full-width glyphs occupy two Latin units."""
+    value = str(value)
     return sum(max(1, math.ceil(sum(2 if unicodedata.east_asian_width(char) in ("W", "F") else 1
                                     for char in line) / width)) for line in value.split("\n"))
 
@@ -191,11 +195,13 @@ def _read_text(cell, field: str, *, optional=False) -> str:
         raise ValueError(f"Untrusted formula in recorded field: {field}")
     if optional and cell.value is None:
         return ""
-    if optional and isinstance(cell.value, str) and not cell.value.strip():
-        return cell.value
+    from openpyxl.cell.rich_text import CellRichText
+    value = str(cell.value) if isinstance(cell.value, CellRichText) else cell.value
+    if optional and isinstance(value, str) and not value.strip():
+        return value
     if isinstance(cell.value, datetime) and field == "executed at":
         return cell.value.isoformat()
-    return required(cell.value, field)
+    return required(value, field)
 
 
 FAMILY = "test-report"
@@ -218,7 +224,7 @@ for _language, _locale in REPORT_LAYOUTS.items():
     _locale['labels']['period'] = 'Thời điểm thực hiện (kèm múi giờ)' if _language == 'vi' else '実施日時（タイムゾーン付き）'
     _locale['labels']['build'] = 'Phiên bản ứng dụng' if _language == 'vi' else 'アプリケーション版'
     _locale['labels']['run_id'] = 'Lần kiểm thử' if _language == 'vi' else 'テスト実行ID'
-    _locale['case_pending'] = 'Chưa đủ kết luận' if _language == 'vi' else '判定未完了'
+    _locale['case_pending'] = 'Đang thực hiện' if _language == 'vi' else '実行中'
     _locale["instructions"] = ("Chọn trạng thái, ghi kết quả thực tế và thêm ảnh tại vùng trống khi cần. Với Không đạt, Bị chặn hoặc Không thực hiện, ghi rõ lý do và bước tiếp theo trong Kết quả thực tế."
         if _language == "vi" else "状態と実際の結果を記録し、必要な場合は空欄に画像を追加します。不合格・実行不可・実行省略では、実際の結果に理由と次の対応を記載します。")
     _locale['metric_labels'] = dict(zip(METRIC_ROWS,
@@ -231,11 +237,11 @@ for _language, _locale in REPORT_LAYOUTS.items():
 
 # 2.2 counts judgments by TC; raw execution states remain variant counts.
 COMPACT_JA_METRIC_LABELS = {
-    'PASS':'対象条件を満たす合格ケース数', 'FAIL':'対象条件を満たす不合格ケース数',
+    'PASS':'記録された合格ケース数', 'FAIL':'記録された不合格ケース数',
     'BLOCKED':'実行不可バリエーション数', 'SKIPPED':'実行省略バリエーション数',
-    'NOT RUN':'未実行バリエーション数', 'evaluated':'対象条件を満たす合否判定ケース数',
-    'pass_rate':'合格ケース数 / 対象条件を満たす合否判定ケース数',
-    'completion_rate':'対象条件を満たす合否判定ケース数 / 全ケース数',
+    'NOT RUN':'未実行バリエーション数', 'evaluated':'合否記録のあるケース数',
+    'pass_rate':'合格ケース数 / 合否記録のあるケース数',
+    'completion_rate':'合否記録のあるケース数 / 全ケース数',
     'outstanding':'合格未確認ケース数', 'invalid':'無効なバリエーション状態数',
 }
 
@@ -277,7 +283,7 @@ class ReportData:
 def template_path(data: ReportData) -> Path:
     assets = Path(__file__).resolve().parents[1] / 'assets'
     if data.report_version != VERSION:
-        raise ValueError('Only test-report@2.4.0 is supported; old workbooks are preserved')
+        raise ValueError('Only test-report@2.5.0 is supported; old workbooks are preserved')
     return assets / REPORT_LAYOUTS[data.language]['template']
 
 
@@ -323,7 +329,7 @@ def prepare_report(source: Path, language="vi", *, customer=True, customer_versi
             raise ValueError("JA/VI identity/state parity mismatch")
     data = project_report(design, language)
     if customer_version not in (None, VERSION):
-        raise ValueError('Only test-report@2.4.0 is supported; old workbooks are preserved')
+        raise ValueError('Only test-report@2.5.0 is supported; old workbooks are preserved')
     return customer_report(data, design), captures
 
 
@@ -336,11 +342,11 @@ def prepare_saved_report(source, report, language='vi'):
     capture = _capture(report)
     with ZipFile(io.BytesIO(capture[0])) as archive:
         if 'docProps/custom.xml' not in archive.namelist():
-            raise ValueError('Unsupported saved report provenance; only test-report@2.4.0 is supported. Original workbook preserved')
+            raise ValueError('Unsupported saved report provenance; only test-report@2.5.0 is supported. Original workbook preserved')
         properties = ET.fromstring(archive.read('docProps/custom.xml'))
         version = next((''.join(p.itertext()) for p in properties if p.get('name') == 'TemplateVersion'), '')
     if version != VERSION:
-        raise ValueError('Unsupported saved report version '+repr(version)+'; only test-report@2.4.0 is supported. Original workbook preserved')
+        raise ValueError('Unsupported saved report version '+repr(version)+'; only test-report@2.5.0 is supported. Original workbook preserved')
     data, captures = prepare_report(Path(source), language)
     captures[report] = capture
     return data, captures
@@ -575,7 +581,7 @@ def numbered_lines(value, field):
 
 def step_label(value, language):
     number = str(value).removesuffix('.')
-    return ('Step ' if language == 'vi' else 'ステップ ') + number
+    return ('Bước ' if language == 'vi' else 'ステップ ') + number
 
 
 def project_report(design, language):

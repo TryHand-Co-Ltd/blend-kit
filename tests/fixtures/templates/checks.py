@@ -371,7 +371,7 @@ def run(root: Path) -> list[str]:
     assert {requirement for scenario in scenarios["scenarios"] for requirement in scenario["requirements"] if requirement.startswith("K")} == {f"K{i}" for i in range(15, 21)}
     validation = mapping(rows, "validation-report", "vi")
     check_identity((root / validation["Template"]).read_text(encoding="utf-8"), validation)
-    return [f"{len(rows)} output/language mappings and paired semantic schema, including one active test-report@2.4.0 JA/VI workbook pair",
+    return [f"{len(rows)} output/language mappings and paired semantic schema, including one active test-report@2.5.0 JA/VI workbook pair",
             "topic/plan/code-review filename patterns and new-family missing/version/order/field controls",
             "current research 1.1.0 rejects unchanged read-only legacy 1.0.0 snapshots as new outputs",
             "positive JA/VI controls and negative missing/version/section/field/order/omission controls",

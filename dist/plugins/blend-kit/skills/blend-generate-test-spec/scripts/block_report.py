@@ -65,7 +65,7 @@ def reader_blank_rows(data, cards):
 def layout(data):
     """Pure current report projection; old workbook layouts are unsupported."""
     if data.report_version != model.VERSION:
-        raise ValueError('Only test-report@2.4.0 is supported')
+        raise ValueError('Only test-report@2.5.0 is supported')
     return _readable_layout(data)
 
 
@@ -91,20 +91,22 @@ def _readable_layout(data):
             add(value, 'key_value', label=label)
         for item in case['action_items']:
             add(item['value'], 'step', label=item['label'])
-        for record in members:
-            branch = case['variants'][record.variant]
-            value = model.display_sentence(branch['inputs'])
-            if branch['action_delta'] != 'none':
-                value += '\n'+('Thao tác: ' if vi else '操作: ')+model.display_sentence(branch['action_delta'])
-            if value.strip():
-                add(value, 'key_value', label=branch['label'])
         add('', 'matrix_header')
         for record in members:
             branch = case['variants'][record.variant]
-            pieces = _chunks(branch['expected'], 53, 23)
-            row = add(branch['label'], 'matrix', right=pieces[0])
-            for piece in pieces[1:]:
-                add('', 'matrix_continuation', right=piece)
+            own = model.display_sentence(branch['inputs'])
+            description = re.split(r'[\n;:]', own, maxsplit=1)[0].strip()
+            if branch['label'] == description+' ('+record.variant+')':
+                own = own[len(description):].lstrip(' ;:\n')
+            if branch['action_delta'] != 'none':
+                own += '\n'+('Thao tác: ' if vi else '操作: ')+model.display_sentence(branch['action_delta'])
+            expected = _chunks(branch['expected'], 44, 23)
+            own_parts = _chunks(own, 34, 23)
+            add('', 'matrix_padding',height=3)
+            row = add(branch['label'], 'matrix', right=expected[0], label=own_parts[0])
+            for index in range(1,max(len(expected),len(own_parts))):
+                add('', 'matrix_continuation', right=expected[index] if index<len(expected) else '',
+                    label=own_parts[index] if index<len(own_parts) else '')
             inputs[record.identity] = {'status': f'E{row}', 'actual': f'D{row}', 'picture': None, 'checkpoints': {}}
         header = add('Ảnh minh chứng — Chưa có ảnh' if vi else '証拠画像 — 画像なし', 'label', height=20)
         for record in members:
@@ -149,21 +151,18 @@ def formulas(data, cards=None, inputs=None):
     sheet = "'" + model.report_locale(data)['sheets'][1] + "'!"
     states = model.report_locale(data)['statuses']
     output, case_statuses = {}, {}
-    def counted(token, members, judged=False):
-        if judged and not all(record.eligible for record in members):
-            return '0'
+    def counted(token, members):
         refs = [inputs[record.identity] for record in members]
         terms = []
         for ref in refs:
-            status, actual = sheet+ref['status'],sheet+ref['actual']
-            valid = f'IF(LEN({model._excel_without_whitespace(actual)})>0,1,0)' if judged else '1'
-            terms.append(f'IF(EXACT({status},"{states[token]}"),{valid},0)')
+            status = sheet+ref['status']
+            terms.append(f'IF(EXACT({status},"{states[token]}"),1,0)')
         return 'SUM('+','.join(terms)+')'
     for card in cards:
         members = card['members']
         for token,address in card['raw_status_cells'].items():
             output[(1,address)]='='+counted(token,members)
-        passed, failed = counted('PASS', members, True), counted('FAIL', members, True)
+        passed, failed = counted('PASS', members), counted('FAIL', members)
         skipped, blocked, unrun = (counted(token, members) for token in ('SKIPPED', 'BLOCKED', 'NOT RUN'))
         status = (f'=IF({failed}>0,"{states["FAIL"]}",IF({passed}={len(members)},"{states["PASS"]}",'
                   f'IF({skipped}={len(members)},"{states["SKIPPED"]}",IF({blocked}>0,"{states["BLOCKED"]}",'
@@ -199,7 +198,7 @@ def build(data):
     from render_report import _text, _height, _jump, _finish
     locale = model.report_locale(data)
     path = model.template_path(data)
-    book = load_workbook(path)
+    book = load_workbook(path, rich_text=True)
     if book.sheetnames != list(locale['sheets']) or {p.name:p.value for p in book.custom_doc_props} != {'TemplateFamily':model.FAMILY,'TemplateVersion':data.report_version,'Language':data.language}:
         raise ValueError('Block template identity or sheets mismatch')
     summary, tests = book.worksheets
@@ -236,9 +235,8 @@ def build(data):
     # total content width used by long conditions/actions and screen details.
     for column, width in (('A', 23), ('B', 24), ('C', 26), ('D', 14), ('E', 45)):
         tests.column_dimensions[column].width = width
-    for column,width in (('A',23),('B',28),('C',28),('D',40),('E',18)):
+    for column,width in (('A',24),('B',35),('C',45),('D',35),('E',19)):
         tests.column_dimensions[column].width=width
-    tests.column_dimensions['F'].width = 18
     cards, inputs = layout(data)
     merged_rows = set()
     def merge_row(value):
@@ -254,37 +252,42 @@ def build(data):
     if data.language == 'ja':
         for key,label in model.COMPACT_JA_METRIC_LABELS.items():
             row=model.METRIC_ROWS[key]
-            _text(summary.cell(row,1),label)
+            _text(summary.cell(row,1),label,emphasis=False)
             _height(summary,row,(label,''),(26,105))
     for key, row in model.SUMMARY_FIELDS.items():
         value = '' if key in model.INPUT_FIELDS else data.summary.get(key, '')
-        _text(summary.cell(row,2), value)
+        _text(summary.cell(row,2), value,emphasis=False)
         _height(summary,row,(summary.cell(row,1).value or '',value),(26,105))
         if key in model.INPUT_FIELDS:
             summary.cell(row,2).fill=PatternFill('solid',fgColor='F8FAFC')
             summary.cell(row,2).protection=Protection(locked=False)
     for index,card in enumerate(cards,model.CASE_START_ROW):
         case = next(case for case in data.cases if case['id']==card['id'])
-        _text(summary.cell(index,1),card['id'])
-        _text(summary.cell(index,2),model.display_markup(case['title']))
+        _text(summary.cell(index,1),card['id'],emphasis=False)
+        _text(summary.cell(index,2),model.display_markup(case['title']),emphasis=False)
         _jump(summary.cell(index,2),tests.title,card['start'])
         _height(summary,index,(card['id'],case['title']),(26,83))
         for row,value,kind,right,height,label in card['rows']:
-            _text(tests.cell(row,1),value)
+            # Titles already have whole-cell bold/white styling. Excel does not
+            # consistently inherit that color across partial inline rich runs.
+            _text(tests.cell(row,1),value,emphasis=kind!='title')
             if kind in ('matrix','matrix_header','matrix_continuation'):
-                merge_row(f'B{row}:C{row}')
                 if kind == 'matrix_header':
-                    headings = ((1,'Trường hợp'),(2,'Mong đợi'),(4,'Thực tế'),(5,'Kết quả'),(6,'Bằng chứng')) if data.language=='vi' else ((1,'条件'),(2,'期待結果'),(4,'実際の結果'),(5,'結果'),(6,'証拠'))
+                    headings = ((1,'Trường hợp'),(2,'Dữ liệu / thao tác riêng'),(3,'Kết quả mong đợi'),(4,'Kết quả thực tế'),(5,'Đánh giá')) if data.language=='vi' else ((1,'条件'),(2,'データ・個別操作'),(3,'期待結果'),(4,'実際の結果'),(5,'結果'))
                     for column,value in (headings):
                         _text(tests.cell(row,column),value)
                         tests.cell(row,column).font=Font(name=locale['font'],size=11,bold=True,color='172033')
                 else:
-                    _text(tests.cell(row,2),right)
+                    _text(tests.cell(row,2),label or '')
+                    _text(tests.cell(row,3),right)
                     if kind=='matrix':
                         _text(tests.cell(row,4),'')
                         tests.cell(row,4).protection=Protection(locked=False)
                         tests.cell(row,4).number_format='@'
                         tests.cell(row,4).fill=PatternFill('solid',fgColor='F8FAFC')
+            elif kind == 'matrix_padding':
+                for column in (4,5):
+                    tests.cell(row,column).fill=PatternFill('solid',fgColor='F8FAFC')
             elif kind in ('status','case_status'):
                 # Status always lives in the compact B cell. It must stay
                 # unmerged so Excel/Google Sheets anchor the popup beside it.
@@ -350,12 +353,15 @@ def build(data):
                 _height(tests,row,(value,),(112,))
             if height:
                 tests.row_dimensions[row].height=height
-            values,widths = ((value or '',right or ''),(56,18) if kind=='screen' else (23,56)) if kind in ('matrix','matrix_continuation','screen') else ((value or '',),(104 if kind in ('key_value','expected_item','step','technical') else 112,))
+            values,widths = ((value or '',label or '',right or ''),(24,35,45)) if kind in ('matrix','matrix_continuation') else ((value or '',),(104 if kind in ('key_value','expected_item','step','technical') else 112,))
             if kind in ('key_value','expected_item','step','technical'):
                 values,widths=(label or '',value or ''),(23,104)
             widths = tuple(width-3 for width in widths)
             _height(tests,row,values,widths,line_height=14,padding=6)
             tests.row_dimensions[row].height=max(20, max(model.display_lines(v,w) for v,w in zip(values,widths))*14+6)
+            if kind == 'matrix_header':
+                tests.row_dimensions[row].height=max(28,max(model.display_lines(tests.cell(row,c).value,w)
+                    for c,w in zip(range(1,6),(21,32,42,32,16)))*14+6)
             if kind == 'title':
                 tests.row_dimensions[row].height=max(28,tests.row_dimensions[row].height)
             if height is not None:
@@ -375,7 +381,7 @@ def build(data):
             if kind == 'picture':
                 tests.row_dimensions[row].outlineLevel=0
             if kind == 'title':
-                for column in range(1,7):
+                for column in range(1,6):
                     tests.cell(row,column).fill=PatternFill('solid',fgColor='17324D')
                 tests.cell(row,1).font=Font(name=locale['font'],size=13,bold=True,color='FFFFFF')
             for column in range(1,6):
@@ -388,8 +394,6 @@ def build(data):
         tests[fields['status']].fill=PatternFill('solid',fgColor='F8FAFC')
         tests[fields['status']].protection=Protection(locked=False)
         validation.add(fields['status'])
-        _jump(tests.cell(tests[fields['status']].row,6), tests.title, fields['evidence_row'],
-              'Xem ảnh' if data.language=='vi' else '画像を確認')
     for (index,address),formula in formulas(data,cards,inputs).items():
         book.worksheets[index][address]=formula
         book.worksheets[index][address].font=Font(name=locale['font'],size=11,color='172033')
@@ -402,7 +406,7 @@ def build(data):
                         vertical='top',wrap_text=True,
                         indent=1 if sheet is tests else 0)
     _finish(summary,'C',model.CASE_START_ROW+len(cards)-1)
-    _finish(tests,'F',cards[-1]['rows'][-1][0] if cards else 4)
+    _finish(tests,'E',cards[-1]['rows'][-1][0] if cards else 4)
     summary.auto_filter.ref = f'A{model.CASE_HEADER_ROW}:C{model.CASE_START_ROW+len(cards)-1}'
     # A column boundary inside merged customer headers fails native Sheets conversion.
     summary.freeze_panes = 'A2'
@@ -420,6 +424,8 @@ def build(data):
     tests.page_setup.orientation='portrait'
     tests.page_setup.paperSize=tests.PAPERSIZE_A3
     book.active=0
+    from render_report import apply_reader_spacing
+    apply_reader_spacing(book)
     return book
 
 
@@ -433,7 +439,7 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
     report=Path(report)
     # prepare_saved_report pins the same bytes used to select its presentation.
     raw=captures[report][0]
-    book=load_workbook(io.BytesIO(raw))
+    book=load_workbook(io.BytesIO(raw), rich_text=True)
     pristine=build(data)
     locale=model.report_locale(data)
     if book.sheetnames!=pristine.sheetnames or {p.name:p.value for p in book.custom_doc_props}!={p.name:p.value for p in pristine.custom_doc_props}:
@@ -602,7 +608,7 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
                 if (sheet.title,cell.coordinate) in editable:
                     continue
                 old=original[cell.coordinate]
-                equal=(_formula_reference_key(cell.value,locale['sheets'])==_formula_reference_key(old.value,locale['sheets']) if cell.data_type==old.data_type=='f' else cell.value==old.value)
+                equal=(_formula_reference_key(cell.value,locale['sheets'])==_formula_reference_key(old.value,locale['sheets']) if cell.data_type==old.data_type=='f' else str(cell.value)==str(old.value))
                 blank = cell.value in (None,'') and old.value in (None,'') and cell.data_type!='f'
                 if not blank and (not equal or cell.data_type!=old.data_type):
                     raise ValueError('Changed source/formula: '+sheet.title+'!'+cell.coordinate)
@@ -634,5 +640,6 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
     case_states={}
     for card in cards:
         members=[(token,valid) for record,token,valid in observations if record.case_id==card['id']]
-        case_states[card['id']]=('FAIL' if any(token=='FAIL' and valid for token,valid in members) else 'PASS' if all(token=='PASS' and valid for token,valid in members) else 'SKIPPED' if all(token=='SKIPPED' for token,_ in members) else 'BLOCKED' if any(token=='BLOCKED' for token,_ in members) else 'NOT RUN' if all(token=='NOT RUN' for token,_ in members) else 'INCOMPLETE')
-    return {'family':model.FAMILY,'version':data.report_version,'language':language,'cases':len(cards),'variants':len(data.rows),'states':dict(counts),'case_states':case_states,'passed':passed,'evaluated':evaluated,'pass_rate':passed/evaluated if evaluated else None,'complete':phase=='complete' and not gaps,'read_only':True,'gaps':gaps,'layout_notes':layout_notes,'links':len(urls)}
+        case_states[card['id']]=('FAIL' if any(token=='FAIL' for token,valid in members) else 'PASS' if all(token=='PASS' for token,valid in members) else 'SKIPPED' if all(token=='SKIPPED' for token,_ in members) else 'BLOCKED' if any(token=='BLOCKED' for token,_ in members) else 'NOT RUN' if all(token=='NOT RUN' for token,_ in members) else 'INCOMPLETE')
+    raw_passed, raw_evaluated = counts['PASS'], counts['PASS']+counts['FAIL']
+    return {'family':model.FAMILY,'version':data.report_version,'language':language,'cases':len(cards),'variants':len(data.rows),'states':dict(counts),'case_states':case_states,'passed':raw_passed,'evaluated':raw_evaluated,'pass_rate':raw_passed/raw_evaluated if raw_evaluated else None,'quality_qualified_passed':passed,'quality_qualified_evaluated':evaluated,'complete':phase=='complete' and not gaps,'read_only':True,'gaps':gaps,'layout_notes':layout_notes,'links':len(urls)}

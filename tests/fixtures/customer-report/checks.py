@@ -58,7 +58,7 @@ def scenario_controls(root, sample_dir=None, *, compact=False):
             shutil.copytree(root/'tests/fixtures/test-spec/inputs'/('compact-scenario' if compact else 'scenario-grouping'),source)
             report=work/'report.xlsx'
             receipt=model.working.export(source,report,language=language)
-            assert receipt['version']=='2.4.0'
+            assert receipt['version']=='2.5.0'
             data,_=model.prepare_report(source,language)
             assert data.feature_id=='SYN-SC'
             first=next(r for r in data.rows if r.case_id=='TC-SC-01' and r.variant=='lt')

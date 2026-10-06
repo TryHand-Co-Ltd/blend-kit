@@ -1,5 +1,7 @@
 # 009 — Chỉ giữ report hiện hành
 
+> Layout và quy tắc tổng hợp hiện hành được thay bởi [quyết định 010](010-readable-execution-report.vi.md). Nội dung phiên bản bên dưới là lịch sử.
+
 Ngày: 06/10/2026. Trạng thái: đã được người phụ trách xác nhận.
 
 Người phụ trách chọn **Chỉ giữ report hiện hành**, yêu cầu xóa asset legacy, archive, template cũ và bản runtime sao chép trong Test Spec; cập nhật các phần liên quan, sau đó push `main` của `blend-kit` và `blend-context`. Đây là thay đổi phạm vi hỗ trợ được xác nhận, không chỉ dọn cache.

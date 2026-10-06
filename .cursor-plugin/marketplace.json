@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Private BLEND workflow plugins for TryHand.",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "plugins": [
     {
       "name": "blend-kit",
       "source": "./dist/plugins/blend-kit",
       "description": "BLEND task generation, test specification, review, and planning workflows.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "author": {
         "name": "TryHand Co., Ltd."
       },

@@ -6,7 +6,7 @@ Read [the shared automation contract](../_kit/shared/automation-testing.md). Thi
 
 Resolve feature identity from the user's verified source and applicable feature README/CONTEXT, not folder-title resemblance. Record target/build/environment, source revision/content identity, report identity, allowed roles/actions and requested scope. The local [run ledger](output.md) contains every requested Case/Variant and its checkpoints before execution. It is a progress ledger, not a second report.
 
-Use the actual parser/report bindings for the supplied versions. Use report2.4 with current1.3 or supported read-only older source grammar. Preserve source IDs/oracles and meaningful checkpoints. Sources without checkpoint IDs use run-local capture labels tied to exact existing assertions/anchors; these labels do not alter design or counts. Older saved workbook formats are rejected without mutation. If a legacy field lacks verified identity/route, ground that fact from supplied context or retain the exact gap. Older unknown paths do not prove that the page is unavailable.
+Use the actual parser/report bindings for the supplied versions. Use report2.5 with current1.3 or supported read-only older source grammar. Preserve source IDs/oracles and meaningful checkpoints. Sources without checkpoint IDs use run-local capture labels tied to exact existing assertions/anchors; these labels do not alter design or counts. Older saved workbook formats are rejected without mutation. If a legacy field lacks verified identity/route, ground that fact from supplied context or retain the exact gap. Older unknown paths do not prove that the page is unavailable.
 
 Separate prerequisite availability from readiness metadata. An attempted auth/role/fixture/source/tool check supplies an actual blocker reason; the word Draft or a previous run's blocker alone does not. Follow fixture create/verify/reset instructions through the permitted UI. If preparation needs DB writes or unsupported fault injection, record the affected execution/proof gap and continue independent cases; test permission alone does not grant those actions. Check non-Browser lanes with the specifically authorized proof source, rather than forcing screenshots to certify DB/security/performance behavior.
 
@@ -27,7 +27,7 @@ Use canonical tokens only as writer inputs; the writer/report's existing locale 
 
 | Canonical token | Observed justification |
 | --- | --- |
-| PASS | Every required assertion is observed against a known oracle, with required reviewed screenshot/export/inspection proof. Confirmed + Ready + recorded Actual remains the separate formal count gate. |
+| PASS | Every required assertion is observed against a known oracle, with required reviewed screenshot/export/inspection proof. Recorded counts reflect the saved status; source/readiness/Actual/evidence checks separately determine proof quality and never silently change that status. |
 | FAIL | An exercised application behavior contradicts a known oracle, with the failing action/state and evidence identified. A capture/ref/annotation/layout failure alone is not product FAIL. |
 | BLOCKED | An attempted prerequisite or operation demonstrates a dependency preventing completion. Actual identifies the attempt, observed reason and next check; do not apply this to untouched variants. |
 | SKIPPED | A deliberate omission permitted by requested scope/design or an actual unavailable safe preparation/proof seam is explained. Missing mandatory proof never becomes optional coverage. |

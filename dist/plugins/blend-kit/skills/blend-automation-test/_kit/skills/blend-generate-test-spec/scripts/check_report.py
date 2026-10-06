@@ -141,12 +141,25 @@ def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None, image_di
                             if resolved not in names:
                                 raise ValueError(f'Invalid or missing internal relationship: {name}')
                 else:
+                    # Scan complete rich strings, not individual runs: splitting a
+                    # credential or private path between formatted runs is unsafe.
+                    rich_nodes = set()
+                    for rich in root.iter():
+                        if rich.tag.rsplit('}', 1)[-1] in ('is','si'):
+                            nodes = [t for t in rich.iter() if t.tag.rsplit('}',1)[-1]=='t']
+                            rich_nodes.update(nodes)
+                            literal = ''.join(t.text or '' for t in nodes)
+                            if literal.strip():
+                                dummy_input = literal in dummy_literals
+                                public_text(literal, name, dummy_input=dummy_input)
+                                scan = re.sub(r'\[dummy-input: [^\]\n]+\]', '', literal) if dummy_input else literal
+                                urls.update(match.group() for match in url_spans(scan))
                     for element in root.iter():
                         tag = element.tag.rsplit('}', 1)[-1]
                         if tag in ('f', 'formula', 'formula1', 'formula2') and _formula_reference_key(element.text, locale['sheets']) not in allowed_formulas:
                             raise ValueError(f'Unrecognized formula in saved package: {name}')
                         # Formula text is compared against the canonical schema separately.
-                        if element.text and tag not in ('f', 'formula', 'formula1', 'formula2'):
+                        if element.text and element not in rich_nodes and tag not in ('f', 'formula', 'formula1', 'formula2'):
                             value = element.text
                             if value.strip():
                                 dummy_input = name.startswith(('xl/worksheets/', 'xl/sharedStrings.xml')) and value in dummy_literals

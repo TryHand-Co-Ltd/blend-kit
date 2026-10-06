@@ -1,6 +1,6 @@
 {
   "name": "blend-kit",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "BLEND task generation, test specification, artifact review, implementation planning, and code review workflows.",
   "author": {
     "name": "TryHand Co., Ltd."

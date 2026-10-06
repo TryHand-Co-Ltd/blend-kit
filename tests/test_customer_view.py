@@ -17,6 +17,101 @@ from render_report import serialize_report
 
 
 class CustomerViewTests(unittest.TestCase):
+    def test_reader_inset_is_idempotent_and_overview_links_plain(self):
+        from render_report import apply_reader_spacing
+        from openpyxl.cell.rich_text import CellRichText
+        source=ROOT/'tests/fixtures/test-spec/inputs/valid'
+        data,_=model.prepare_report(source)
+        book=blocks.build(data)
+        summary,tests=book.worksheets
+        _,inputs=blocks.layout(data)
+        fields=next(iter(inputs.values()))
+        self.assertNotIn('\n',tests[fields['actual']].number_format)
+        self.assertIn(tests[fields['actual']].value,(None,''))
+        self.assertEqual(summary['B18'].alignment.horizontal,'right')
+        self.assertEqual(summary['B18'].alignment.indent,1)
+        self.assertEqual(summary['B18'].alignment.vertical,'center')
+        self.assertEqual(tests[fields['actual']].alignment.vertical,'top')
+        data_row=tests[fields['actual']].row
+        self.assertEqual(tests.row_dimensions[data_row-1].height,3)
+        self.assertFalse(tests.row_dimensions[data_row-1].hidden)
+        self.assertFalse(any(tests.cell(data_row-1,c).value for c in range(1,6)))
+        self.assertEqual(tests.cell(data_row-1,4).fill.fgColor.rgb[-6:],'F8FAFC')
+        self.assertEqual(tests.cell(5,1).alignment.vertical,'center')
+        self.assertTrue(all(not isinstance(c.value,CellRichText) for row in summary for c in row))
+        for row in range(model.CASE_START_ROW,model.CASE_START_ROW+len(data.cases)):
+            self.assertIsNotNone(summary.cell(row,2).hyperlink)
+            self.assertEqual(summary.cell(row,2).font.color.rgb[-6:],'1D4ED8')
+            self.assertEqual(summary.cell(row,2).font.underline,'single')
+        before=[(s.title,c.coordinate,c.value,c.number_format) for s in book for row in s for c in row]
+        heights=[(s.title,r,d.height) for s in book for r,d in s.row_dimensions.items()]
+        apply_reader_spacing(book)
+        self.assertEqual(before,[(s.title,c.coordinate,c.value,c.number_format) for s in book for row in s for c in row])
+        self.assertEqual(heights,[(s.title,r,d.height) for s in book for r,d in s.row_dimensions.items()])
+
+    def test_recorded_results_do_not_depend_on_readiness_or_actual(self):
+        source = ROOT/'tests/fixtures/test-spec/inputs/valid'
+        data,_ = model.prepare_report(source)
+        cards,inputs=blocks.layout(data)
+        case=next(card for card in cards if any(not r.eligible for r in card['members']))
+        formula=blocks.formulas(data,cards,inputs)[(1,f'B{case["status_row"]}')]
+        self.assertNotIn('LEN(',formula)
+        self.assertIn('Đang thực hiện',formula)
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'report.xlsx'
+            book=blocks.build(data)
+            for record in case['members']:
+                book.worksheets[1][inputs[record.identity]['status']]='Đạt'
+            path.write_bytes(serialize_report(book))
+            receipt=blocks.check(path,source)
+            self.assertEqual(receipt['case_states'][case['id']],'PASS')
+            self.assertEqual(receipt['passed'],len(case['members']))
+            self.assertEqual(receipt['quality_qualified_passed'],0)
+            self.assertTrue(any('actual result required' in gap for gap in receipt['gaps']))
+            book.worksheets[1][inputs[case['members'][0].identity]['status']]='Không đạt'
+            path.write_bytes(serialize_report(book))
+            self.assertEqual(blocks.check(path,source)['case_states'][case['id']],'FAIL')
+            first=inputs[case['members'][0].identity]['status']
+            for label,expected in (('Bị chặn','BLOCKED'),('Chưa thực hiện','INCOMPLETE' if len(case['members'])>1 else 'NOT RUN')):
+                book.worksheets[1][first]=label
+                path.write_bytes(serialize_report(book))
+                self.assertEqual(blocks.check(path,source)['case_states'][case['id']],expected)
+            for record in case['members']:
+                book.worksheets[1][inputs[record.identity]['status']]='Không thực hiện'
+            path.write_bytes(serialize_report(book))
+            self.assertEqual(blocks.check(path,source)['case_states'][case['id']],'SKIPPED')
+
+    def test_rich_text_reopen_preserves_literals_and_checks_combined_privacy(self):
+        from openpyxl.cell.rich_text import CellRichText, TextBlock
+        from openpyxl.cell.text import InlineFont
+        from render_report import _text
+        from openpyxl import Workbook
+        from check_report import _package
+        book=Workbook()
+        literal='Chọn Hủy（キャンセル） rồi kiểm tra A=50 AND A<70.'
+        _text(book.active['A1'],literal)
+        self.assertIsInstance(book.active['A1'].value,CellRichText)
+        _text(book.active['A3'],literal,emphasis=False)
+        self.assertIsInstance(book.active['A3'].value,str)
+        saved=load_workbook(io.BytesIO(serialize_report(book)),rich_text=True)
+        self.assertEqual(str(saved.active['A1'].value),literal)
+        self.assertTrue(any(isinstance(run,TextBlock) and run.font.b for run in saved.active['A1'].value))
+        # Native Excel requires preservation on even whitespace-only runs.
+        book.active['A2']=CellRichText([TextBlock(InlineFont(b=True),'First'),' ',TextBlock(InlineFont(b=True),'Second')])
+        from zipfile import ZipFile
+        import xml.etree.ElementTree as ET
+        with ZipFile(io.BytesIO(serialize_report(book))) as package:
+            root=ET.fromstring(package.read('xl/worksheets/sheet1.xml'))
+            texts=list(root.iter('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}t'))
+            self.assertTrue(any(t.text==' ' and t.get('{http://www.w3.org/XML/1998/namespace}space')=='preserve' for t in texts))
+        source=ROOT/'tests/fixtures/test-spec/inputs/valid'
+        data,_=model.prepare_report(source)
+        report=blocks.build(data)
+        fields=next(iter(blocks.layout(data)[1].values()))
+        report.worksheets[1][fields['actual']]=CellRichText(['secret',TextBlock(InlineFont(b=True),'=hidden')])
+        with self.assertRaisesRegex(ValueError,'credential'):
+            _package(serialize_report(report),data,'in-progress',{},[])
+
     def test_binding_sheet_matches_current_workbook(self):
         from update_report import report_bindings
         source = ROOT/'tests/fixtures/test-spec/inputs/valid'
@@ -26,7 +121,7 @@ class CustomerViewTests(unittest.TestCase):
             path.write_bytes(serialize_report(blocks.build(data)))
             binding = report_bindings(source,path)
             self.assertEqual(binding['sheet'],load_workbook(path).worksheets[1].title)
-            self.assertEqual(binding['schema_version'],'2.4.0')
+            self.assertEqual(binding['schema_version'],'2.5.0')
 
     def test_reader_removes_operational_filler_keeps_specific_oracles_and_actions(self):
         from copy import deepcopy
@@ -248,8 +343,11 @@ class CustomerViewTests(unittest.TestCase):
             saved = load_workbook(report)
             sheet = saved.worksheets[1]
             self.assertEqual(saved.sheetnames,['Tổng quan','Kiểm thử'])
+            heading=sheet.cell(fields['checkpoints'][checkpoint]['label_row'],1)
+            self.assertEqual((heading.alignment.horizontal,heading.alignment.vertical,heading.alignment.indent),('left','center',1))
             for image in sheet._images:
                 title = sheet.cell(image.anchor._from.row,1)
+                self.assertEqual((title.alignment.horizontal,title.alignment.vertical,title.alignment.indent),('left','center',1))
                 self.assertEqual(title.value,image.anchor.pic.nvPicPr.cNvPr.descr)
                 self.assertTrue(sheet.row_dimensions[title.row].hidden)
                 self.assertEqual(sheet.row_dimensions[title.row].outlineLevel,1)
@@ -419,9 +517,9 @@ class CustomerViewTests(unittest.TestCase):
                         self.assertIsNone(tests[fields['actual']].value)
                         self.assertEqual(tests[fields['status']].value, model.REPORT_LAYOUTS[language]['statuses']['NOT RUN'])
                         link = tests.cell(tests[fields['status']].row, 6).hyperlink
-                        self.assertIsNotNone(link)
+                        self.assertIsNone(link)
                         self.assertFalse(tests.row_dimensions[tests[fields['status']].row].hidden)
-                        for column in (1,2,4,5):
+                        for column in (1,2,3,4,5):
                             alignment = tests.cell(tests[fields['status']].row,column).alignment
                             self.assertEqual((alignment.horizontal,alignment.vertical,alignment.indent),('left','top',1))
                     # Core hiding cannot be used to make a short-looking report pass.

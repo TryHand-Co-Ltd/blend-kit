@@ -34,7 +34,7 @@ def execution_controls(root, archive, fixture='scenario-grouping'):
     data, _ = report_model.prepare_report(source, 'vi')
     if fixture == 'compact-scenario':
         replay['identity']['design_revision'] = data.summary['revision']
-    assert data.report_version == '2.4.0'
+    assert data.report_version == '2.5.0'
     inventory = {(row.case_id, row.variant) for row in data.rows}
     assert len(inventory) == 9 and all(not row.eligible for row in data.rows)
     assert inventory == {(r['case_id'], r['variant_id']) for r in saved['rows']}

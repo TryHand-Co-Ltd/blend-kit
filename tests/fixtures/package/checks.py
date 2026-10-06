@@ -145,7 +145,7 @@ def run(root: Path) -> list[str]:
         shutil.copytree(root / "tests/fixtures/test-spec/inputs/valid", design)
         design_before = {p.name: p.read_bytes() for p in design.iterdir() if p.is_file()}
         scenario_designs = {}
-        for fixture, version in (("scenario-grouping", "2.4.0"), ("compact-scenario", "2.4.0")):
+        for fixture, version in (("scenario-grouping", "2.5.0"), ("compact-scenario", "2.5.0")):
             relocated_design = base / fixture
             shutil.copytree(root / "tests/fixtures/test-spec/inputs" / fixture, relocated_design)
             scenario_designs[fixture] = (relocated_design, version)
@@ -258,7 +258,7 @@ def run(root: Path) -> list[str]:
                         env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"})
                     assert result.returncode == 0, result.stderr
                     binding = json.loads(result.stdout)
-                    assert binding["feature_id"] == "SYN-PACKAGE" and binding["schema_version"] == "2.4.0"
+                    assert binding["feature_id"] == "SYN-PACKAGE" and binding["schema_version"] == "2.5.0"
                     assert binding["variants"] and saved_report.read_bytes() == saved_bytes
                     for fixture, (scenario_design, report_version) in scenario_designs.items():
                         for language in ("ja", "vi"):
@@ -289,7 +289,7 @@ def run(root: Path) -> list[str]:
                                 if identity != "TC-SC-01 / lt":
                                     assert sheet[other["actual_cell"]].value is None
                                     assert sheet[other["status_cell"]].value == ("Chưa thực hiện" if language == "vi" else "未実行")
-                            if report_version == "2.4.0":
+                            if report_version == "2.5.0":
                                 assert fields["actual_cell"].startswith("D") and fields["status_cell"].startswith("E")
                             book.close()
                 runtime_registry = builder.read_registry(resources["_kit/shared/artifact-formats.md"].decode())
@@ -388,11 +388,11 @@ def run(root: Path) -> list[str]:
             "all emitted resources/local links and rewritten registry paths resolve without source fallback; source1.0/1.1/1.2 legacy and current1.3 dispatch reject duplicate/fenced identity spoofing",
             f"all {len(rows)} registered template bytes, SKILL descriptions/bodies and resource inventories match across profiles",
             "source and all 18 shipped gates check JA Markdown and capture explicitly selected raw bytes from another cwd; automation writer resolves bundled evidence validator without sibling installation",
-            "JA/VI source1.2/1.3 both generate only report2.4 export/check/bind/write through relocated canonical runtimes on all profiles; synthetic FAIL preserves eight untouched NOT RUN variants and frozen sources",
+            "JA/VI source1.2/1.3 both generate only report2.5 export/check/bind/write through relocated canonical runtimes on all profiles; synthetic FAIL preserves eight untouched NOT RUN variants and frozen sources",
             "deployed inline/presentation/missing-asset drift and traversal captures remain Draft/Blocked",
             "topic/plan/code-review filename shapes accept multiple descriptive and exact-ID-prefixed names, reject literal/traversal/legacy output names",
             "one canonical behavioral protocol/common policy and exact license bytes bundled; legacy artifact pointers resolve",
             "private snapshots/configs/tests excluded; collision/rebuild preserves existing output",
-            "current JA/VI report2.4 assets remain byte-identical; no legacy/customer copies are bundled",
+            "current JA/VI report2.5 assets remain byte-identical; no legacy/customer copies are bundled",
             "invalid mapping/version/bilingual pair/name/private path/missing license rejected",
             "package checks do not prove installation, runtime discovery or actual agent semantic parity"]

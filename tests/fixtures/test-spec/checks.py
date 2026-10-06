@@ -185,7 +185,7 @@ def run(root: Path):
         exporter.export(long_source, long_output)
         long_book = load_workbook(long_output)
         assert len(long_book.sheetnames) == 2
-        chunks = ''.join(str(row[1].value or '') for row in long_book.worksheets[1])
+        chunks = ''.join(str(row[2].value or '') for row in long_book.worksheets[1])
         long_data,_ = model.prepare_report(long_source)
         assert next(row for row in long_data.rows if row.identity == 'TC-SYN-01 / a').expected.count('preserved state') == 250
         assert chunks.casefold().count('preserved state') >= 250
@@ -240,7 +240,7 @@ def run(root: Path):
             else:
                 raise AssertionError('AND equality negative control dropped')
             projected, _ = model.prepare_report(scenario_source, language)
-            assert projected.report_version == '2.4.0' and projected.feature_id == 'SYN-SC'
+            assert projected.report_version == '2.5.0' and projected.feature_id == 'SYN-SC'
             assert len(projected.rows) == 9 and not any(row.eligible for row in projected.rows)
             lt = next(r for r in projected.rows if r.identity == 'TC-SC-01 / lt')
             le = next(r for r in projected.rows if r.identity == 'TC-SC-01 / le')
@@ -272,7 +272,7 @@ def run(root: Path):
             assert design['cases'][0]['context_refs']['actor'] == '@CTX-SC'
             assert len(design['contexts']['CTX-SC']) == 5
             projected, _ = model.prepare_report(compact_source, language)
-            assert projected.report_version == '2.4.0' and projected.feature_id == 'SYN-SC'
+            assert projected.report_version == '2.5.0' and projected.feature_id == 'SYN-SC'
             final_expected = {(case['id'], variant[0]): variant[3]
                               for case in design['cases'] for variant in case['variants']}
             assert all(row.expected.casefold() == final_expected[(row.case_id, row.variant)].casefold()

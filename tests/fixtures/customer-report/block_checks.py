@@ -35,7 +35,7 @@ def run(root):
                 case_path.write_text(text,encoding='utf-8')
             report=folder/'report.xlsx'
             receipt=model.working.export(source,report,language=lang)
-            assert receipt['version']=='2.4.0'
+            assert receipt['version']=='2.5.0'
             data,_=model.prepare_report(source,lang)
             cards,inputs=blocks.layout(data)
             report_formulas=blocks.formulas(data,cards,inputs)
@@ -46,7 +46,7 @@ def run(root):
             case_formula=report_formulas[(0,f'C{overview_row}')]
             if case_formula == f"='{model.REPORT_LAYOUTS[lang]['sheets'][1]}'!B{eligible_card['status_row']}":
                 case_formula=report_formulas[(1,f'B{eligible_card["status_row"]}')]
-            assert inputs[eligible.identity]['actual'] in case_formula
+            assert inputs[eligible.identity]['actual'] not in case_formula
             book=load_workbook(report)
             assert len(book.sheetnames)==2 and not any(sheet._images for sheet in book)
             visible='\n'.join(str(cell.value or '') for sheet in book for row in sheet for cell in row)
