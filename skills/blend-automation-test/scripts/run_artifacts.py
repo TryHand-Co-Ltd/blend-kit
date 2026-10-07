@@ -80,6 +80,37 @@ def append_record(run: Path, record: dict) -> None:
         __import__("os").fsync(stream.fileno())
 
 
+def checkpoint_observations(run: Path, expected: dict) -> dict:
+    """Read internal proof separately from the report's reader-facing Actual."""
+    entries = records(run)
+    for key in (*RUN_KEYS, 'run_id'):
+        same = (Path(entries[0].get(key,'')).resolve()==Path(expected.get(key,'')).resolve()
+                if key=='report' else entries[0].get(key)==expected.get(key))
+        if not same:
+            raise ValueError('Checkpoint ledger identity mismatch: '+key)
+    if run.name != expected['run_id'] or run.parent.name != entries[0].get('feature_folder'):
+        raise ValueError('Checkpoint ledger directory identity mismatch')
+    result = {}
+    for entry in entries[1:]:
+        if entry.get('kind') != 'checkpoint-observations':
+            continue
+        for key in ('design_revision','feature_id','run_id'):
+            if entry.get(key) != expected[key]:
+                raise ValueError('Checkpoint observation identity mismatch: '+key)
+        target = component(entry.get('case_id'))+' / '+component(entry.get('variant_id'))
+        values = entry.get('observations')
+        if not isinstance(values,dict):
+            raise ValueError('Checkpoint observations must be an object')
+        for cp,value in values.items():
+            component(cp)
+            text(value,cp)
+        digest=entry.get('actual_sha256','')
+        if not isinstance(digest,str) or not re.fullmatch(r'[a-f0-9]{64}',digest):
+            raise ValueError('Checkpoint observations require Actual digest')
+        result[target] = {'actual_sha256':digest,'observations':values}
+    return result
+
+
 def create_run(context_root: Path, feature_folder: str, metadata: dict, run_id: str | None = None) -> Path:
     context_root = bounded(Path(context_root), Path(context_root))
     feature_folder = component(feature_folder)

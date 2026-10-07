@@ -26,8 +26,8 @@ def run(root: Path) -> list[str]:
         ("split-tasks", "ja"): ("参照元", "対象範囲", "メイン画面", "変更範囲"),
         ("acceptance-criteria", "vi"): ("Nguồn", "Phạm vi"),
         ("acceptance-criteria", "ja"): ("参照元", "対象範囲"),
-        ("business-questions", "vi"): ("Nguồn", "Phạm vi", "Tình huống", "Điều cần quyết định", "Ảnh hưởng", "Phương án", "Đề xuất", "Câu xác nhận", "Trạng thái"),
-        ("business-questions", "ja"): ("参照元", "対象範囲", "状況", "判断事項", "影響", "選択肢", "提案", "確認依頼", "状態"),
+        ("business-questions", "vi"): ("Cập nhật", "Phạm vi và nguồn", "Đề xuất", "Xác nhận"),
+        ("business-questions", "ja"): ("更新日", "対象・参照元", "提案", "確認"),
         ("database-design", "vi"): ("Nguồn", "Phạm vi", "Nhận diện", "Quan hệ", "Ràng buộc", "Đọc và ghi", "Vòng đời", "Tương thích", "Kiểm chứng"),
         ("database-design", "ja"): ("参照元", "対象範囲", "識別", "関係", "制約", "読み書き", "ライフサイクル", "互換性", "検証"),
     }

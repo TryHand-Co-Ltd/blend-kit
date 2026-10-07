@@ -55,11 +55,11 @@ def execution_controls(root, archive, fixture='scenario-grouping'):
                     assert event['checkpoint_id'] in binding['variants'][target]['checkpoints']
         identity = {k: replay['identity'][k] for k in ('design_revision', 'feature_id', 'run_id')}
         identity.update(case_id='TC-SC-01', variant_id='lt')
-        actual = 'CP-setup: threshold30 and comparator< verified.\nCP-result:29 and30 red;31 not red;total2. Observation-only Draft; disagrees with oracle; pixel evidence unavailable.'
+        actual = 'Threshold30 and comparator< verified.\nScores29 and30 red;31 not red;total2. Observation-only Draft; disagrees with oracle; pixel evidence unavailable.'
         update_report.update_report(source, report, {'identity': identity, 'status': 'FAIL', 'actual': actual})
         # A later independent variant can still receive a truthful partial result.
         next_identity = {**identity, 'variant_id': 'le'}
-        partial = 'CP-setup: threshold30 and comparator≤ verified.\nCP-result:29 and30 red;31 not red;total2. Observation pending reviewed screenshot evidence; user stopped writeback.'
+        partial = 'Threshold30 and comparator≤ verified.\nScores29 and30 red;31 not red;total2. Observation pending reviewed screenshot evidence; user stopped writeback.'
         update_report.update_report(source, report, {'identity': next_identity, 'status': 'NOT RUN', 'actual': partial})
         book = load_workbook(report)
         sheet = book[binding['sheet']]

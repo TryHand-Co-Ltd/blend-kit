@@ -30,6 +30,8 @@ Combine repeated conditions and sibling outcomes of one review purpose only when
 
 Each independently answerable leaf has scenario/current facts, unresolved decision/problem, impact, viable options, a marked recommendation with reason/trade-off, confirmation requested and authority status. Related questions may share context but each leaf remains answerable and tracks its own answer/source. A sibling answer does not close the parent or other leaves. Existing settled answers are retained with authority; do not ask them again.
 
+Use the customer-facing 1.1.0 presentation: answered and unanswered sections; concrete situation paragraphs; a three-column option/treatment/impact table when alternatives exist; bold Proposal and Confirmation paragraphs. Do not render the semantic fields as seven repeated bullet labels. Group related decisions under one question heading with bold numbered child headings; each child retains its own proposal and confirmation. Keep answered status faithful (provisional, confirmed or existing requirement), state a scoped none when there are no answers, and do not move proposed defaults into the answered section. Unanswered status comes from its section; repeat status only for a leaf with a different state.
+
 If no product outcome can be recommended from evidence, propose the smallest investigation and selection criterion, not a fabricated default. Engineering choices and discoverable facts are researched/proposed, not sent to the customer as business-policy questions. If there are no open questions, use the template's no-open-questions alternative with the assessed scope; do not manufacture questions to fill the file.
 
 ## Conditional Database Design

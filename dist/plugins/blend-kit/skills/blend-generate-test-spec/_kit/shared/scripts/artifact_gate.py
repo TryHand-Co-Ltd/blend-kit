@@ -138,6 +138,9 @@ def check_identity(text: str, row: dict[str, str]) -> None:
 
 
 def field_value(line: str, field: str) -> str | None:
+    bold = re.fullmatch(r"\*\*([^*]+)\*\*\s*(.*)", line.strip())
+    if bold and bold.group(1).rstrip(".:：。").strip() == field:
+        return bold.group(2)
     clean = line.strip().replace("**", "")
     if clean.startswith("|"):
         cells = [cell.strip() for cell in clean.strip("|").split("|")]
@@ -191,6 +194,13 @@ def template_slots(section: str) -> list[tuple[str, str]]:
     slots = []
     lines = section.splitlines()
     for index, line in enumerate(lines):
+        bold = re.fullmatch(r"\*\*([^*]+)\*\*\s*(.*)", line.strip())
+        if bold and not re.search(r"[{}\[\]]", bold.group(1)):
+            value = bold.group(2)
+            following = next((item.strip() for item in lines[index + 1:] if item.strip()), "")
+            if re.search(r"\{\{|\[[^]]+\]", value) or (not value and following.startswith("{{")):
+                slots.append((bold.group(1).rstrip(".:：。").strip(), "inline" if value else "block"))
+                continue
         clean = line.strip().replace("**", "").removeprefix("- ")
         if clean.startswith("|"):
             cells = [cell.strip() for cell in clean.strip("|").split("|")]
@@ -232,7 +242,7 @@ def validate_slots(content: str, slots: list[tuple[str, str]], location: str) ->
                     raise ValueError(f"Missing/empty block required field: {field}")
 
 
-def validate_entries(content: str, schema: str, location: str) -> None:
+def validate_entries(content: str, schema: str, location: str, *, nested_questions: bool = False) -> None:
     """Only repeated finding/question/fixture H3 entries, using their actual asset."""
     blocks = re.split(r"^### ([^\n]+)\n?", schema, flags=re.M)
     if len(blocks) < 3:
@@ -242,7 +252,25 @@ def validate_entries(content: str, schema: str, location: str) -> None:
     entries = re.split(r"^### ([^\n]+)\n?", content, flags=re.M)
     for title, body in zip(entries[1::2], entries[2::2]):
         if title not in optional_titles:
-            validate_slots(body, entry_slots, f"{location}/{title}")
+            leaves = re.split(r"^\*\*(Q[\w.-]*\s+—[^\n]+)\*\*\s*$", body, flags=re.M) if nested_questions else [body]
+            if len(leaves) > 1:
+                validate_slots(leaves[0], [slot for slot in entry_slots if slot[1] == "block"], f"{location}/{title}")
+                for leaf, leaf_body in zip(leaves[1::2], leaves[2::2]):
+                    validate_slots(leaf_body, [slot for slot in entry_slots if slot[1] == "inline"], f"{location}/{leaf}")
+            else:
+                validate_slots(body, entry_slots, f"{location}/{title}")
+
+
+def validate_qa_tables(content: str, language: str) -> None:
+    """Each displayed option table needs usable choices and their impacts."""
+    expected = ["Phương án", "Xử lý", "Ảnh hưởng"] if language == "vi" else ["案", "処理", "影響"]
+    for table in re.findall(r"(?:^\|[^\n]+\n?)+", content, re.M):
+        records = [[cell.strip() for cell in line.strip().strip("|").split("|")]
+                   for line in table.splitlines() if not re.fullmatch(r"[-|:\s]+", line)]
+        if not records or records[0] != expected:
+            raise ValueError("Q&A option table must use the registered option/treatment/impact columns")
+        if len(records) < 2 or any(len(record) != 3 or any(not value for value in record) for record in records[1:]):
+            raise ValueError("Q&A option table requires populated choices, treatments and impacts")
 
 
 def check_output(text: str, filename: str, rows: list[dict[str, str]], output_type: str,
@@ -269,7 +297,16 @@ def check_output(text: str, filename: str, rows: list[dict[str, str]], output_ty
     actual = sections(text)
     schema = sections(template)
     headings = row["Required sections"].split(";")
+    customer_qa = output_type == "business-questions" and row["Version"] == "1.1.0"
+    if customer_qa:
+        validate_slots(visible_body(text).split("\n## ", 1)[0],
+                       template_slots(visible_body(template).split("\n## ", 1)[0]), "Q&A introduction")
+        inline, block = (("Hiện trạng và vấn đề.", "Hiện trạng và điểm cần xác nhận") if language == "vi"
+                         else ("現状と課題。", "現状と確認したい点"))
+        actual[headings[1]] = re.sub(re.escape("**" + inline + "**") + r"[ \t]*",
+                                     "**" + block + "**\n\n", actual[headings[1]])
     conditional_entry = {"review": 1, "code-review": 2, "business-questions": 1, "test-data": 1}
+    entry_sections = {0, 1} if customer_qa else {conditional_entry.get(output_type)}
     for index, heading in enumerate(headings):
         content = actual[heading]
         useful = [line for line in content.splitlines() if line.strip() and not line.lstrip().startswith(("#", "|"))]
@@ -325,12 +362,14 @@ def check_output(text: str, filename: str, rows: list[dict[str, str]], output_ty
                 slots = [(field, presentation) for field, presentation in slots if field not in role_fields]
         # Entries may be absent with an explicit scoped none statement. A finding
         # or fixture label present anywhere re-enables the full entry schema.
-        if conditional_entry.get(output_type) == index and explicit_none(content) and not any(
+        if index in entry_sections and explicit_none(content) and not re.search(r"^### ", content, re.M) and not any(
                 field_value(line, field) is not None for field, _ in slots for line in content.splitlines()):
             continue
         validate_slots(content, slots, heading)
-        if conditional_entry.get(output_type) == index:
-            validate_entries(content, field_schema, heading)
+        if index in entry_sections:
+            validate_entries(content, field_schema, heading, nested_questions=customer_qa and index == 1)
+            if customer_qa and index == 1:
+                validate_qa_tables(content, language)
     # Review inventory is a prescribed fixed H3/table, not an extensible label.
     if output_type == "review":
         asset_h3 = re.findall(r"^### ([^\n]+)$", schema[headings[0]], re.M)

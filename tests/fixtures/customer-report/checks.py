@@ -133,7 +133,7 @@ def scenario_controls(root, sample_dir=None, *, compact=False):
                 ledger.write_text(ledger_before,encoding='utf-8')
             second={**identity,'variant_id':'le'}
             update_report(source,report,{'identity':second,'status':'BLOCKED',
-                'actual':'CP-setup: synthetic prerequisite unavailable; next action: prepare fixture.'},language=language)
+                'actual':'Synthetic prerequisite unavailable; next action: prepare fixture.'},language=language)
             reread=load_workbook(report)
             assert len(reread.worksheets[1]._images)==3
             assert reread.worksheets[1][fields['actual_cell']].value==payload['actual']

@@ -46,6 +46,31 @@ def check_runtime_gate(root: Path, rows) -> None:
         check(row, text)
         rejected(lambda: check(row, text.replace(none, "")), "empty findings section masquerading as none")
         rejected(lambda: check(row, text.replace("### Inventory", "### Inventory (selected)")), "fixed Inventory renamed")
+        row, text = completed("business-questions", language)
+        check(row, text)
+        headings = row["Required sections"].split(";")
+        none = "回答済みQ&A：なし。未回答の提案を回答済みにしない。" if language == "ja" else "Không có Q&A đã nhận được câu trả lời; các đề xuất vẫn chưa xác nhận."
+        text = re.sub(r"## " + re.escape(headings[0]) + r".*?\n## " + re.escape(headings[1]),
+                      f"## {headings[0]}\n\n{none}\n\n## {headings[1]}", text, flags=re.S)
+        context, proposal, confirmation = (("現状と確認したい点", "提案", "確認") if language == "ja"
+                                            else ("Hiện trạng và điểm cần xác nhận", "Đề xuất", "Xác nhận"))
+        columns = "案 | 処理 | 影響" if language == "ja" else "Phương án | Xử lý | Ảnh hưởng"
+        table = f"| {columns} |\n| --- | --- | --- |\n| A | Keep prior value | May remain outdated |\n| B | Clear prior value | May lose usable prior result |"
+        leaf = f"{table}\n\n**{proposal}:** A is proposed, not approved.\n\n**{confirmation}:** Choose A or B?"
+        group = f"### Q1 — Two independent decisions\n\n**{context}**\n\nThe prior result exists; timing and overwrite are independent decisions.\n\n**Q1.1 — Timing**\n\n{leaf}\n\n**Q1.2 — Overwrite**\n\n{leaf}\n"
+        text = re.sub(r"## " + re.escape(headings[1]) + r".*", f"## {headings[1]}\n\nUnanswered proposals only.\n\n{group}", text, flags=re.S)
+        check(row, text)
+        inline = "現状と課題。" if language == "ja" else "Hiện trạng và vấn đề."
+        check(row, text.replace(f"**{context}**\n\nThe prior result", f"**{inline}** The prior result"))
+        second = text.index("**Q1.2 —")
+        missing = text[:second] + text[second:].replace(f"**{confirmation}:** Choose A or B?", "")
+        rejected(lambda: check(row, missing), "sibling confirmation masks unanswered child")
+        rejected(lambda: check(row, text.replace("| B | Clear prior value | May lose usable prior result |", "| B | Clear prior value | |")),
+                 "option lacks impact")
+        no_open = "未回答の業務確認：なし。確認した範囲のみ。" if language == "ja" else "Không có câu hỏi nghiệp vụ còn mở trong phạm vi đã kiểm."
+        no_questions = text.split("## " + headings[1], 1)[0] + f"## {headings[1]}\n\n{no_open}\n"
+        check(row, no_questions)
+        rejected(lambda: check(row, no_questions.replace(no_open, "")), "empty unanswered section")
     row, text = completed("split-tasks", "vi")
     check(row, text)
     label = "**Màn hình bị ảnh hưởng:**"

@@ -273,8 +273,7 @@ def run(root: Path) -> list[str]:
                             assert binding["schema_version"] == report_version and binding["feature_id"] == "SYN-SC"
                             assert len(binding["variants"]) == 9 and saved_report.read_bytes() == saved_bytes
                             fields = binding["variants"]["TC-SC-01 / lt"]
-                            actual = "\n".join(f"{checkpoint}: Synthetic failure observation; no live application proof."
-                                               for checkpoint in fields["checkpoints"])
+                            actual = "Synthetic failure observation; no live application proof."
                             payload = {"identity": {"design_revision": binding["design_revision"],
                                 "feature_id": "SYN-SC", "case_id": "TC-SC-01", "variant_id": "lt", "run_id": "2026-10-05-001"},
                                 "status": "FAIL", "actual": actual}

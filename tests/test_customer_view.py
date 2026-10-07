@@ -337,6 +337,8 @@ class CustomerViewTests(unittest.TestCase):
                     'reviewed_by':'fixture','reviewed_at':'2026-10-05T12:00:02+07:00','source':{'capture_tool':'fixture',
                         'raw_capture':f'raw-{sequence}','annotated_capture':f'annotated-{sequence}',
                         'annotation_method':'Synthetic fixture','pixel_review':{'tool':'fixture','reference':'synthetic-check'}}})
+            evidence[0]['title']='Xác nhận thành tích（成績確認） — S01 hiển thị *29'
+            evidence[1]['title']='成績確認 — 赤点は*29と表示'
             payload = {'identity':identity,'status':'FAIL','actual':'Synthetic mismatch observed; inspect the result.','evidence':evidence}
             result = update_report(source,report,payload,run_dir=run)
             self.assertEqual(result['evidence_added'],4)
@@ -462,7 +464,7 @@ class CustomerViewTests(unittest.TestCase):
             self.assertEqual(fields['evidence_capacity']['rows_per_checkpoint'], blocks.READABLE_EVIDENCE_ROWS)
             identity = {key: binding[key] for key in ('design_revision', 'feature_id')}
             identity.update(case_id=fields['case_id'], variant_id=fields['variant_id'], run_id='2026-10-05-001')
-            for actual in ('Observed mismatch; fix required.', 'Observed mismatch; next action: inspect result. '*9):
+            for actual in ('Observed mismatch; fix required.', 'Observed mismatch; next action: inspect result. '*9, 'Observed mismatch; fix required.'):
                 update_report(source, report, {'identity': identity, 'status': 'FAIL', 'actual': actual, 'evidence': []})
                 saved = load_workbook(report)
                 cell = saved.worksheets[1][fields['actual_cell']]
@@ -474,6 +476,79 @@ class CustomerViewTests(unittest.TestCase):
                     self.assertEqual((alignment.horizontal,alignment.vertical,alignment.indent),('left','top',1))
                 if len(actual)<50:
                     self.assertLess(height, 90)
+
+    def test_localized_actual_and_checkpoint_ledger_are_independent(self):
+        from update_report import report_bindings, update_report, _archive_helper
+        from openpyxl.cell.rich_text import CellRichText, TextBlock
+        source=ROOT/'tests/fixtures/test-spec/inputs/compact-scenario'
+        for language,actual in (
+                ('vi','Xác nhận thành tích（成績確認）: ô S01 Đỏ hiển thị *29; điểm không thay đổi.'),
+                ('ja','成績確認: S01の赤点は*29と表示され、点数は変更されない。')):
+            with self.subTest(language=language), tempfile.TemporaryDirectory() as directory:
+                folder=Path(directory)
+                report=folder/'report.xlsx'
+                export_report.export(source,report,language=language,customer=True)
+                binding=report_bindings(source,report,language)
+                target,fields=next((name,value) for name,value in binding['variants'].items()
+                    if value['checkpoints'] and all(cp['artifact']=='inspection' for cp in value['checkpoints'].values()))
+                identity={key:binding[key] for key in ('design_revision','feature_id')}
+                identity.update(case_id=fields['case_id'],variant_id=fields['variant_id'],run_id='2026-10-05-001')
+                feature=folder/'context/features/SYN-SC-controls'
+                feature.mkdir(parents=True)
+                for name in ('README.md','CONTEXT.md'):
+                    (feature/name).write_text('Synthetic fixture',encoding='utf-8')
+                archive=_archive_helper()
+                run=archive.create_run(folder/'context','SYN-SC-controls',{
+                    **{key:identity[key] for key in ('design_revision','feature_id')},'report':str(report.resolve())},identity['run_id'])
+                observations={cp:'Synthetic inspected observation.' for cp in fields['checkpoints']}
+                payload={'identity':identity,'status':'PASS','actual':actual,'observations':observations}
+                update_report(source,report,payload,language=language,run_dir=run)
+                book=load_workbook(report,rich_text=True)
+                value=book.worksheets[1][fields['actual_cell']].value
+                self.assertIsInstance(value,CellRichText)
+                self.assertEqual(str(value),actual)
+                self.assertIn('*29',[str(run.text) for run in value if isinstance(run,TextBlock) and run.font.b])
+                self.assertEqual(archive.records(run)[-1]['observations'],observations)
+                frozen=report.read_bytes()
+                for invalid in ({**payload,'actual':'CP-result: raw log'},
+                                {**payload,'observations':{'unknown':'Observation'}},
+                                {**payload,'status':'PASS','observations':{}}):
+                    with self.assertRaises(ValueError):
+                        update_report(source,report,invalid,language=language,run_dir=run)
+                    self.assertEqual(report.read_bytes(),frozen)
+                # PASS needs proof for the exact Actual, independently of visible prose.
+                receipt=blocks.check(report,source,language,run_dir=run)
+                self.assertFalse(any(target+': missing checkpoint observations' in gap for gap in receipt['gaps']))
+                self.assertTrue(any(target+': missing checkpoint observations' in gap for gap in blocks.check(report,source,language)['gaps']))
+                book.worksheets[1][fields['actual_cell']]=actual+' Different observation.'
+                report.write_bytes(serialize_report(book))
+                self.assertTrue(any(target+': missing checkpoint observations' in gap for gap in blocks.check(report,source,language,run_dir=run)['gaps']))
+
+    def test_inline_code_uses_native_bold_without_added_brackets(self):
+        from openpyxl import Workbook
+        from openpyxl.cell.rich_text import TextBlock
+        from render_report import _text
+        book=Workbook()
+        raw='Form `incomplete-deleted-stale`: `(29)`, `*29`, `29*`, `**24`, `[1,2]`, `a[0]`, `[A-Z]+`.'
+        expected='Form incomplete-deleted-stale: (29), *29, 29*, **24, [1,2], a[0], [A-Z]+.'
+        tokens=('incomplete-deleted-stale','(29)','*29','29*','**24','[1,2]','a[0]','[A-Z]+')
+        projected=model.display_markup(raw)
+        self.assertEqual(model.display_markup(projected),projected)
+        _text(book.active['D1'],projected)
+        _text(book.active['A2'],'`[1,2]`',emphasis=False)
+        _text(book.active['A3'],'`=1`')
+        _text(book.active['A4'],'incomplete-deleted-stale')
+        saved=load_workbook(io.BytesIO(serialize_report(book)),rich_text=True)
+        value=saved.active['D1'].value
+        self.assertEqual(str(value),expected)
+        bold=[run.text for run in value if isinstance(run,TextBlock) and run.font.b]
+        for token in tokens:
+            self.assertIn(token,bold)
+        self.assertEqual(saved.active['A2'].value,'[1,2]')
+        self.assertEqual((saved.active['A3'].value,saved.active['A3'].data_type),('=1','s'))
+        self.assertTrue(saved.active['A4'].value[0].font.b)
+        self.assertFalse(model.markdown_leak(value))
+        self.assertTrue(model.markdown_leak('**unexpected Markdown**'))
 
     def test_supported_sources_generate_only_current_standalone_reports_without_source_changes(self):
         for language in ('vi', 'ja'):

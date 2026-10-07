@@ -429,7 +429,7 @@ def build(data):
     return book
 
 
-def check(report,source,language='vi',phase='in-progress',*,closure_confirmation=None,evidence_access=(),screenshots=()):
+def check(report,source,language='vi',phase='in-progress',*,closure_confirmation=None,evidence_access=(),screenshots=(),run_dir=None,checkpoint_observations=None):
     from check_report import _package,_formula_reference_key
     if phase not in ('in-progress','complete'):
         raise ValueError('Unknown check phase')
@@ -456,6 +456,15 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
             areas.append(fields['picture_rows'])
         editable.update((locale['sheets'][1], f'A{row}') for rows in areas for row in rows)
     summary,tests=book.worksheets
+    proof=checkpoint_observations or {}
+    if run_dir is not None:
+        from update_report import _archive_helper
+        archive=_archive_helper()
+        feature=data.feature_id or archive.records(Path(run_dir))[0]['feature_id']
+        model.working.identifier(feature)
+        proof=archive.checkpoint_observations(Path(run_dir),{
+            'design_revision':data.summary['revision'],'feature_id':feature,
+            'run_id':str(summary[f'B{model.SUMMARY_FIELDS["run_id"]}'].value or ''),'report':str(report.resolve())})
     for key in model.INPUT_FIELDS:
         value=model._read_text(summary[f'B{model.SUMMARY_FIELDS[key]}'],key,optional=True)
         if value:
@@ -475,12 +484,17 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
             if note:
                 model.public_text(note, record.identity+' evidence note')
         if model.markdown_leak(actual):
-            raise ValueError('Actual result must use spreadsheet text such as [identifier], not Markdown syntax: '+record.identity)
+            raise ValueError('Actual result must use literal spreadsheet text and native bold, not Markdown syntax: '+record.identity)
         if status not in states:
             raise ValueError('Invalid pasted status: '+record.identity)
         token=states[status]
+        if re.search(r'(?m)^\s*CP-[A-Za-z0-9_.-]+:\s*',actual) or any(
+                re.search(r'(?m)^\s*'+re.escape(cp)+r':\s*',actual) for cp in fields['checkpoints']):
+            gaps.append(record.identity+': Actual contains internal checkpoint prefixes; use reader-language prose')
         if token == 'PASS':
-            missing = [cp for cp in fields['checkpoints'] if not re.search(r'(?m)^'+re.escape(cp)+r':\s*\S',actual)]
+            entry=proof.get(record.identity,{})
+            observed=entry.get('observations',{}) if entry.get('actual_sha256')==hashlib.sha256(actual.encode('utf-8')).hexdigest() else {}
+            missing = [cp for cp in fields['checkpoints'] if not observed.get(cp)]
             if missing:
                 gaps.append(record.identity+': missing checkpoint observations: '+', '.join(missing))
         for key,value in (('actual',actual),):
@@ -591,7 +605,7 @@ def check(report,source,language='vi',phase='in-progress',*,closure_confirmation
                 raise ValueError('Evidence image exceeds reserved checkpoint area')
             title_row = anchor.row
             caption = tests.cell(title_row,1).value
-            if title_row not in fields['picture_rows'] or not model.descriptive_image_title(caption) or caption != image.anchor.pic.nvPicPr.cNvPr.descr:
+            if title_row not in fields['picture_rows'] or not model.descriptive_image_title(caption) or str(caption) != image.anchor.pic.nvPicPr.cNvPr.descr:
                 raise ValueError('Each evidence image requires its matching title immediately above')
             for old_id,old_top,old_bottom in occupied:
                 if old_id==(identity,checkpoint_id) and max(top,old_top)<min(bottom,old_bottom):

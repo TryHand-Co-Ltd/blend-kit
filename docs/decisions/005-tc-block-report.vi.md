@@ -1,6 +1,6 @@
 # 005 — Báo cáo dạng TC block
 
-> Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support.
+> Historical record. Workbook compatibility/asset retention clauses are superseded by [decision 009](009-current-report-only.vi.md); they do not describe current support. The added square-bracket convention for inline code is superseded by the current [artifact formats](../../shared/artifact-formats.md): use native bold with no added brackets, preserving actual data characters.
 
 
 Ngày: 04/10/2026. Trạng thái: người phụ trách đã duyệt hướng layout, gồm trạng thái ở dòng riêng dưới tiêu đề. Thực thi/kiểm chứng và quyền xuất bản là các phạm vi riêng.

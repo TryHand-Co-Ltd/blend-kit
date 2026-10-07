@@ -40,10 +40,10 @@ def report_bindings(source_dir, report, language='vi', *, feature_id=None):
             for identity,fields in inputs.items()}}
 
 
-def _validator():
+def _archive_helper():
     # Built profiles bundle the single shared helper alongside this writer.
     try:
-        from run_artifacts import validate_evidence
+        import run_artifacts as module
     except ImportError:
         source_helper=Path(__file__).resolve().parents[2]/'blend-automation-test'/'scripts'/'run_artifacts.py'
         if not source_helper.is_file():
@@ -52,8 +52,11 @@ def _validator():
         spec=importlib.util.spec_from_file_location('blend_run_artifacts',source_helper)
         module=importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        validate_evidence=module.validate_evidence
-    return validate_evidence
+    return module
+
+
+def _validator():
+    return _archive_helper().validate_evidence
 
 
 def _image_bytes(image):
@@ -173,6 +176,20 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
     model.public_text(actual,'actual')
     if model.markdown_leak(actual):
         raise ValueError('Actual must be literal spreadsheet text, without Markdown')
+    if re.search(r'(?m)^\s*CP-[A-Za-z0-9_.-]+:\s*',actual) or any(
+            re.search(r'(?m)^\s*'+re.escape(cp)+r':\s*',actual) for cp in fields['checkpoints']):
+        raise ValueError('Actual requires reader-language prose; put checkpoint observations in observations')
+    observations=payload.get('observations',{})
+    if not isinstance(observations,dict) or set(observations)-set(fields['checkpoints']):
+        raise ValueError('Observations must map declared checkpoint IDs to literal observations')
+    for cp,value in observations.items():
+        model.public_text(model.required(value,cp),cp)
+    proof={}
+    if observations:
+        if run_dir is None:
+            raise ValueError('Checkpoint observations require run directory')
+        proof=_archive_helper().checkpoint_observations(Path(run_dir),{**identity,'report':str(report.resolve())})
+        proof[target]={'actual_sha256':hashlib.sha256(actual.encode('utf-8')).hexdigest(),'observations':observations}
     status=payload.get('status')
     if status not in model.REPORT_LAYOUTS[language]['statuses']:
         raise ValueError('Use canonical PASS/FAIL/BLOCKED/SKIPPED/NOT RUN status')
@@ -181,7 +198,7 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
         raise ValueError('Evidence must be an array')
     if status=='PASS' and fields['checkpoints']:
         for cp in fields['checkpoints']:
-            if not re.search(r'(?m)^'+re.escape(cp)+r':\s*\S',actual):
+            if not observations.get(cp):
                 raise ValueError('PASS requires observation for every checkpoint: '+cp)
         required={cp for cp,v in fields['checkpoints'].items() if v['artifact']=='screenshot'}
         if required-{e.get('checkpoint_id') for e in evidence}:
@@ -236,8 +253,10 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
     for address in (fields['actual_cell'],fields['status_cell']):
         tests[address].alignment=Alignment(horizontal='left',vertical='top',indent=1,wrap_text=True)
     actual_height = model.display_lines(actual,actual_width)*14+6
-    current_height=tests.row_dimensions[tests[fields['actual_cell']].row].height or 20
-    tests.row_dimensions[tests[fields['actual_cell']].row].height=min(409,max(current_height,actual_height,20))
+    row=tests[fields['actual_cell']].row
+    source_height=max(20,max(model.display_lines(str(tests.cell(row,c).value or ''),w)
+        for c,w in ((1,21),(2,32),(3,42)))*14+6)
+    tests.row_dimensions[row].height=min(409,max(source_height,actual_height))
     if actual_height>409:
         raise ValueError('Actual exceeds reserved row capacity; shorten to observations without dropping assertions')
     for cp in evidence_slots:
@@ -258,7 +277,7 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
             handle.write(raw)
             handle.flush()
             os.fsync(handle.fileno())
-        blocks.check(candidate,source_dir,language)
+        blocks.check(candidate,source_dir,language,checkpoint_observations=proof)
         reread=load_workbook(candidate, rich_text=True)
         after=_preserved(reread,editable,mutable_rows)
         target_names={image[5] for image in before[2] if image[5].startswith('BLEND|'+identity['case_id']+'|'+identity['variant_id']+'|')}
@@ -268,8 +287,10 @@ def update_report(source_dir, report, payload, *, language='vi', run_dir=None, f
         if str(reread.worksheets[1][fields['actual_cell']].value)!=actual or str(reread.worksheets[1][fields['status_cell']].value)!=model.REPORT_LAYOUTS[language]['statuses'][status]:
             raise ValueError('Writeback readback failed')
         model._unchanged(captures)
+        if observations:
+            _archive_helper().append_record(Path(run_dir),{'kind':'checkpoint-observations',**identity,**proof[target]})
         os.replace(candidate,report)
-        result=blocks.check(report,source_dir,language)
+        result=blocks.check(report,source_dir,language,checkpoint_observations=proof)
     finally:
         if candidate.exists():
             candidate.unlink()

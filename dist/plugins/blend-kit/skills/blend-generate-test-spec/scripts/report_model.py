@@ -525,7 +525,7 @@ INLINE_CODE = re.compile(r'`([^`\n]+)`')
 
 
 def display_markup(value):
-    """Convert Markdown-only emphasis into stable plain spreadsheet notation."""
+    """Keep inline-code boundaries for native bold; never add display brackets."""
     value = str(value)
     pieces = []
     cursor = 0
@@ -533,17 +533,16 @@ def display_markup(value):
         pieces.append(value[cursor:match.start()].replace('**', '').replace('`', ''))
         # Preserve every byte inside inline code. Literal stars such as **24
         # are business data, not Markdown emphasis.
-        pieces.append('[' + match.group(1) + ']')
+        pieces.append(match.group())
         cursor = match.end()
     pieces.append(value[cursor:].replace('**', '').replace('`', ''))
     return ''.join(pieces)
 
 
 def markdown_leak(value):
-    """True only for presentation Markdown, not literal stars in [code]."""
+    """Reject visible Markdown, preserving literal score stars such as **24."""
     value = str(value)
-    outside_code = re.sub(r'\[[^\]\n]*\]', '', value)
-    return '`' in value or '**' in outside_code
+    return '`' in value or bool(re.search(r'\*\*[^\n]+?\*\*', value))
 
 
 def strip_list_marker(value):
@@ -561,7 +560,7 @@ def concise_lines(value, *, dummy_input=False):
 def display_sentence(value):
     """Sentence case for reader text; identifiers and punctuation remain literal."""
     value = strip_list_marker(display_markup(value))
-    if value.startswith(('[', '/', 'http://', 'https://')):
+    if value.startswith(('`', '[', '/', 'http://', 'https://')):
         return value
     for index, char in enumerate(value):
         if char.isalpha():

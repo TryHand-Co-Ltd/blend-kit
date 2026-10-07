@@ -51,21 +51,41 @@ def _text(cell, value, *, emphasis=True):
     from openpyxl.cell.rich_text import CellRichText, TextBlock
     from openpyxl.cell.text import InlineFont
     import re
+    from report_model import INLINE_CODE
     # Emphasize source UI labels and decision values without changing literals.
     pattern = r'[^\s,;:.\n（）()]+(?: [^\s,;:.\n（）()]+){0,3}（[^）]+）|\b(?:AND|OR)\b|\b[A-Z](?:≥|≤|>=|<=|=|<|>)-?\d+(?:\.\d+)?%?'
-    if cell.column == 3:
-        pattern += r'|Không áp dụng|Không đỏ|Đỏ'
-    if emphasis and isinstance(value, str) and not value.startswith('='):
-        runs, offset = [], 0
-        for match in re.finditer(pattern, value):
-            if match.start() > offset:
-                runs.append(value[offset:match.start()])
-            runs.append(TextBlock(InlineFont(b=True), match.group()))
-            offset = match.end()
-        if runs:
-            if offset < len(value):
-                runs.append(value[offset:])
-            value = CellRichText(runs)
+    pattern += r'|\(-?\d+(?:\.\d+)?\)|\*{1,2}-?\d+(?:\.\d+)?|-?\d+(?:\.\d+)?\*{1,2}|\b[A-Za-z][\w]*(?:-[\w]+){2,}\b'
+    if cell.column in (3, 4):
+        pattern += r'|Không áp dụng|Không đỏ|Đỏ|赤点'
+    if isinstance(value, str):
+        parts, spans, cursor, length = [], [], 0, 0
+        for match in INLINE_CODE.finditer(value):
+            plain=value[cursor:match.start()]
+            parts.extend((plain,match.group(1)))
+            length+=len(plain)
+            spans.append((length,length+len(match.group(1))))
+            length+=len(match.group(1))
+            cursor=match.end()
+        parts.append(value[cursor:])
+        value=''.join(parts)
+        if emphasis and not value.startswith('='):
+            spans.extend((match.start(),match.end()) for match in re.finditer(pattern,value))
+            merged=[]
+            for start,end in sorted(spans):
+                if merged and start<=merged[-1][1]:
+                    merged[-1]=(merged[-1][0],max(end,merged[-1][1]))
+                else:
+                    merged.append((start,end))
+            runs,offset=[],0
+            for start,end in merged:
+                if start>offset:
+                    runs.append(value[offset:start])
+                runs.append(TextBlock(InlineFont(b=True),value[start:end]))
+                offset=end
+            if runs:
+                if offset<len(value):
+                    runs.append(value[offset:])
+                value=CellRichText(runs)
     cell.value = value
     if isinstance(value, str):
         cell.data_type = 's'

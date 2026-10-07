@@ -24,7 +24,7 @@ An ordinary task bundle includes useful selected topic Research pairs, Split Tas
 
 - Split by independently usable outcomes and real dependencies. Show Main Screen, Affected Screens, bounded scope, business change, short evidenced Technical and completion; local numbering is not a source Task ID.
 - AC uses unchecked stable-ID checklists grouped by business flow/outcome. Keep decisive exceptions and preserved state beside their rule; do not put test execution steps or implementation prescriptions into AC.
-- Q&A must stand alone: concrete scenario/problem, options, marked recommendation with trade-off, one independently answerable decision per leaf. Never relabel proposed answers as confirmed.
+- Q&A follows the customer-facing 1.1.0 asset: answered/unanswered sections, situation paragraphs, option/impact tables, bold recommendation and confirmation; related decisions use independently answerable numbered children. Do not render seven repeated field bullets or relabel proposals as confirmed.
 - Database Design is conditional on a necessary schema/storage/relationship/data-lifecycle design change. DB reads or changing a UI label do not trigger it. Include only affected design detail; use source-supported constraints or mark engineering proposals. No executable DDL/migration output is mapped by this kit.
 - `research/<topic>.sql` is conditional on an authorized concrete investigation question. Load its unchanged `sql-investigation@1.0.0` template and the SQL rules in the reference; it remains a read-only **DRAFT — NOT EXECUTED**, with unresolved inputs explicitly **NOT READY TO RUN**. Existing historical SQL/DDL stays at its original location.
 

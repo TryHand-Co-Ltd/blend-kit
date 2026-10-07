@@ -215,9 +215,9 @@ def _package(raw, data, phase, payload, gaps, *, allowed_formulas=None, image_di
 
 
 def check_report(report: Path, source_dir: Path, language='vi', phase='in-progress', *,
-                 closure_confirmation=None, evidence_access=(), screenshots=()):
+                 closure_confirmation=None, evidence_access=(), screenshots=(), run_dir=None):
     from block_report import check
-    return check(report,source_dir,language,phase,closure_confirmation=closure_confirmation,evidence_access=evidence_access,screenshots=screenshots)
+    return check(report,source_dir,language,phase,closure_confirmation=closure_confirmation,evidence_access=evidence_access,screenshots=screenshots,run_dir=run_dir)
 
 
 def main():
@@ -230,12 +230,13 @@ def main():
     parser.add_argument('--source-dir', type=Path, required=True)
     parser.add_argument('--language', choices=('ja', 'vi'), default='vi')
     parser.add_argument('--phase', choices=('in-progress', 'complete'), default='in-progress')
+    parser.add_argument('--run-dir', type=Path, help='Matching local run ledger for checkpoint observations')
     args = parser.parse_args()
     try:
         payload = json.load(sys.stdin) if args.phase == 'complete' else {}
         if args.phase == 'complete' and (not isinstance(payload, dict) or set(payload) != {'closure_confirmation', 'evidence_access', 'screenshots'}):
             raise ValueError('Completion stdin requires closure_confirmation, evidence_access and screenshots')
-        result = check_report(args.report, args.source_dir, args.language, args.phase, **payload)
+        result = check_report(args.report, args.source_dir, args.language, args.phase, run_dir=args.run_dir, **payload)
     except (ValueError, TypeError, OSError, ImportError, KeyError) as error:
         parser.exit(1, f'Report check blocked: {error}\n')
     print(json.dumps(result, ensure_ascii=False))
